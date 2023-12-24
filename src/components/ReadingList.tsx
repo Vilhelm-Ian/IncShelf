@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 import { open } from '@tauri-apps/api/dialog';
 import get_file_name from "../utils/get_file_name";
+import Reader from "./Reader";
 // Open a selection dialog for image files
 
 function ReadingList() {
@@ -23,6 +24,7 @@ function ReadingList() {
   return (
     <div>
     <button onclick= { add_document } > Add < /button>
+    < Reader />
     < /div>
   );
 }
