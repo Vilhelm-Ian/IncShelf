@@ -15,7 +15,13 @@
       "shell": {
         "all": false,
         "open": true
-      }
+      },
+    "dialog": {
+      "open": true
+    },
+    "os": {
+      "all": true
+    }
     },
     "bundle": {
       "active": true,
