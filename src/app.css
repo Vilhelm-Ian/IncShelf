@@ -1,0 +1,86 @@
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.preact:hover {
+  filter: drop-shadow(0 0 2em #673ab8aa);
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+
+.container {
+display: flex;
+flex-direction: row;
+}
+
+.notes {
+  // top: 10%;
+  // left: 90%;
+  // position: fixed;
+  width: 25%;
+  top: 10%;
+  position: sticky;
+  height: 100vh;
+}
+
+.highlight > span, .highlight {
+background-color:rgba(0,0,255,0.3);  
+}
+
+.highlight {
+  position: relative;
+}
+
+.bookmark{
+border-style: solid;
+padding: 5%;
+margin-top: 5%;
+}
+
+.bookmark {
+  text-align: right;
+}
+
+.bookmark-buttons {
+  display: grid;
+}
+
+.bookmark-buttons > button {
+  height: 100%;
+}
+
+#reader {
+  width: 100%;
+}
+
+
+.anki {
+display: flex;
+flex-direction: column;
+  
+}
+
+.anki > p {
+  max-width: 500px;
+}
+
+.anki > textarea {
+  width: 100%;
+}
