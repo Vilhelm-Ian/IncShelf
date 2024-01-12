@@ -92,7 +92,7 @@ export default function Anki(props) {
       {fieldNames.map(field => {
         return <>
           <label>{field}</label>
-          <span onInput={(e) => update_fields(field, e.currentTarget.textContent)} contenteditable role="textbox" />
+          <span name="field" onInput={(e) => update_fields(field, e.currentTarget.textContent)} contenteditable role="textbox" />
         </>
       })
       }
