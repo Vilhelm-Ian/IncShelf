@@ -236,6 +236,17 @@ div.searchHit { position:absolute; pointer-events:none; outline: 1px solid hotpi
 		</div>
 	</div>
 </div>
+<script>
+function open_f(e) {
+//TODO delete this
+
+console.log("this is the file", e.target.files[0])
+e.target.files[0].arrayBuffer().then(data=> console.log(data))
+	document.documentViewer.openFile(e.target.files[0])
+
+	
+}
+</script>
 
 <div id="grid-sidebar"><ul id="outline"></ul></div>
 
@@ -246,7 +257,7 @@ div.searchHit { position:absolute; pointer-events:none; outline: 1px solid hotpi
 
 <input type="file" id="open-file-input" style="display:none"
 	accept=".pdf,.xps,application/pdf"
-	onchange="document.documentViewer.openFile(event.target.files[0])" />
+	onchange="open_f(event)" />
 </div>
 </body>
 <script type="module" src="mupdf-view.js"></script>

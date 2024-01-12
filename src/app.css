@@ -1,30 +1,3 @@
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.preact:hover {
-  filter: drop-shadow(0 0 2em #673ab8aa);
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-
 .container {
 display: flex;
 flex-direction: row;
@@ -71,7 +44,7 @@ margin-top: 5%;
 }
 
 
-.anki {
+.anki:modal {
 display: flex;
 flex-direction: column;
   
@@ -81,6 +54,21 @@ flex-direction: column;
   max-width: 500px;
 }
 
-.anki > textarea {
-  width: 100%;
+.anki > span{
+  text-align: initial;
+  background: rgb(45,45,45);
+  border: 1px solid #ccc;
+  
+}
+
+table {
+  width: 70vw;
+}
+
+th {
+  border: solid;
+}
+
+input {
+  color: black;
 }

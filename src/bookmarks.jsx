@@ -5,15 +5,19 @@ import './app.css'
 import Anki from "./anki"
 
 export default function Bookmark(props) { 
+  let [dialog_element, setDialogElement] = useState()
+
   function open_dialog() {
-    document.querySelector("#dialog-"+props.index).showModal();
+    let dialog = <Anki style="display: none;" text={props.text} index={props.index}/>
+    setDialogElement(dialog)
   }
+
   return (
     <div class="bookmark" >
       <p>{props.text}</p>
       <button>Add Note</button>
       <button onClick={open_dialog}>Create Anki cards</button>
-      <Anki text={props.text} index={props.index}/>
+      {dialog_element}
     </div>
   )
 }

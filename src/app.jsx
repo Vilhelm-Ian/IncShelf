@@ -1,8 +1,9 @@
-import { useState } from 'preact/hooks'
+import { useState, useEffect } from 'preact/hooks'
 import preactLogo from './assets/preact.svg'
 import viteLogo from '/vite.svg'
 import './app.css'
 import Bookmark from "./bookmarks"
+import {FileList }from "./filelist"
 
 export function App() { 
   const [highlights, setHighlights] = useState([])
@@ -54,6 +55,7 @@ export function App() {
   let highligt_elements = highlights.map((highlight) => <Bookmark text={highlight.toString()}/>)
   return (
     <div class="container">
+      <FileList/>
       <div id="reader">
 	<div id="pages">
 	</div>
