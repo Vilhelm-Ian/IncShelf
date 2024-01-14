@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'preact/hooks'
 import getFileName from "./utils/get_file_name"
 import { readBinaryFile } from '@tauri-apps/api/fs'
-import {AddDocumentDialog} from "./add_document"
+import { AddDocumentDialog } from "./add_document"
+import { invoke } from '@tauri-apps/api'
 
 export function FileList() {
   const [fileElements, setFileElemets] = useState([])
@@ -9,16 +10,20 @@ export function FileList() {
   const [display, setDisplay] = useState("visible")
 
   async function open_file(file_path, file_name) {
-    setDisplay("none")
-    try{
-    let data = await readBinaryFile(file_path)
-    let f = new File([data], file_name, {
-      type: "application/pdf"
-    })
-    document.documentViewer.openFile(f)
-      }
-    catch(err) {
-    setDisplay("visible")
+    try {
+        // let data = await invoke('open_file_binary', { path: file_path })
+        // Opening the file is slow in development because of serde
+        //https://github.com/tauri-apps/tauri/issues/1817
+        // To get around that I have to use invoke-http
+      let data = await readBinaryFile(file_path)
+      let f = new File([data], file_name, {
+        type: "application/pdf"
+      })
+      document.documentViewer.openFile(f)
+      setDisplay("none")
+    }
+    catch (err) {
+      setDisplay("visible")
       console.log(err)
     }
   }
@@ -26,9 +31,9 @@ export function FileList() {
 
   useEffect(() => {
     let books = JSON.parse(localStorage.getItem("books"))
-    if(books !== null ) {
-    setFiles(books)
-      
+    if (books !== null) {
+      setFiles(books)
+
     }
   }, [])
 
@@ -39,16 +44,15 @@ export function FileList() {
 
   function create_rows() {
     console.log(files)
-    let rows = files.map(file=> (
-            <tr>
-              <th ><input type="checkbox" /><span onClick={() => open_file(file.file_path, file.name)} >{file.name}</span></th>
-              <th>1 day</th>
-              <th><progress id="file" max="100" value={file.priority}></progress></th>
-              <th>{file.tags}</th>
-            </tr>
-          ))
+    let rows = files.map(file => (
+      <tr>
+        <th ><input type="checkbox" /><span onClick={() => open_file(file.file_path, file.name)} >{file.name}</span></th>
+        <th>1 day</th>
+        <th><progress id="file" max="100" value={file.priority}></progress></th>
+        <th>{file.tags}</th>
+      </tr>
+    ))
     setFileElemets(rows)
-    
   }
 
 
@@ -58,8 +62,8 @@ export function FileList() {
 
   return (
     <div style={`display: ${display}`}>
-      <button onClick={()=>show_dialog()}>Add</button>
-      <AddDocumentDialog setFiles={setFiles}/>
+      <button onClick={() => show_dialog()}>Add</button>
+      <AddDocumentDialog setFiles={setFiles} />
       <p>Files</p>
       <table>
         <tr>

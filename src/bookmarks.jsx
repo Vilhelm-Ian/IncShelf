@@ -3,6 +3,7 @@ import preactLogo from './assets/preact.svg'
 import viteLogo from '/vite.svg'
 import './app.css'
 import Anki from "./anki"
+import Note from "./note"
 
 export default function Bookmark(props) { 
   let [dialog_element, setDialogElement] = useState()
@@ -18,6 +19,9 @@ export default function Bookmark(props) {
       <button>Add Note</button>
       <button onClick={open_dialog}>Create Anki cards</button>
       {dialog_element}
+      <Note text={props.text}/>
+      <div id="markdown">
+    </div>
     </div>
   )
 }
