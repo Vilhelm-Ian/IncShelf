@@ -6,82 +6,49 @@ import { invoke } from '@tauri-apps/api'
 
 export function FileList(props) {
   const [fileElements, setFileElemets] = useState([])
-  const [files, setFiles] = useState([])
   const [display, setDisplay] = useState("visible")
   const [is_opening, setIsOpening] = useState(false)
-
-  async function open_file(file_path, file_name) {
-    try {
-        // let data = await invoke('open_file_binary', { path: file_path })
-        // Opening the file is slow in development because of serde
-        //https://github.com/tauri-apps/tauri/issues/1817
-        // To get around that I have to use invoke-http
-      setIsOpening(true)
-      let data = await readBinaryFile(file_path)
-      props.setFileBinary(data)
-      // let f = new File([data], file_name, {
-      //   type: "application/pdf"
-      // })
-      // document.documentViewer.openFile(f)
-      // setDisplay("none")
-    }
-    catch (err) {
-      setDisplay("visible")
-      console.log(err)
-    }
-  }
-
-
-  useEffect(() => {
-    let books = JSON.parse(localStorage.getItem("books"))
-    if (books !== null) {
-      setFiles(books)
-
-    }
-  }, [])
-
-  useEffect(() => {
-    create_rows()
-  }, [files])
-
-
-  function create_rows() {
-    console.log(files)
-    let rows = files.map(file => (
-      <tr>
-        <th ><input type="checkbox" /><span onClick={() => open_file(file.file_path, file.name)} >{file.name}</span></th>
-        <th>1 day</th>
-        <th><progress id="file" max="100" value={file.priority}></progress></th>
-        <th>{file.tags}</th>
-      </tr>
-    ))
-    setFileElemets(rows)
-  }
-
+  //TODO use react context provider to sync que
 
   function show_dialog() {
     document.getElementById("add_document_dialog").showModal()
   }
+  // <AddDocumentDialog setFiles={setFiles} />
+
+  async function open_next(async_callback) {
+    setIsOpening(true)
+    await async_callback()//props.open_next_in_que()
+    setIsOpening(false)
+  }
 
   return (
     <div>
-    {
-    is_opening ? <div class="loader"></div> :
-    <div style={`display: ${display}`}>
-      <button onClick={() => show_dialog()}>Add</button>
-      <AddDocumentDialog setFiles={setFiles} />
-      <p>Files</p>
-      <table>
-        <tr>
-          <th>Title</th>
-          <th>Added</th>
-          <th>Progress</th>
-          <th>Tags</th>
-        </tr>
-        {fileElements}
-      </table>
-    </div>
-    }
-  </div>
+      {
+        is_opening ? <div class="loader"></div> :
+          <div style={`display: ${display}`}>
+            <button onClick={() => open_next(props.open_next_in_que)}>Next in que</button>
+            <button onClick={() => show_dialog()}>Add</button>
+            <p>Files</p>
+            <table>
+              <tr>
+                <th>Title</th>
+                <th>Added</th>
+                <th>Progress</th>
+                <th>Tags</th>
+              </tr>
+              {
+                props.books.map(file => (
+                  <tr>
+                    <th ><input type="checkbox" /><span onClick={() => open_next(()=>props.open_file(file.file_path, file.name))} >{file.name}</span></th>
+                    <th>1 day</th>
+                    <th><progress id="file" max="100" value={file.priority}></progress></th>
+                    <th>{file.tags}</th>
+                  </tr>
+                ))
+              }
+            </table>
+          </div>
+      }
+    </div >
   )
 }
