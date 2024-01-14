@@ -4,10 +4,11 @@ import { readBinaryFile } from '@tauri-apps/api/fs'
 import { AddDocumentDialog } from "./add_document"
 import { invoke } from '@tauri-apps/api'
 
-export function FileList() {
+export function FileList(props) {
   const [fileElements, setFileElemets] = useState([])
   const [files, setFiles] = useState([])
   const [display, setDisplay] = useState("visible")
+  const [is_opening, setIsOpening] = useState(false)
 
   async function open_file(file_path, file_name) {
     try {
@@ -15,12 +16,14 @@ export function FileList() {
         // Opening the file is slow in development because of serde
         //https://github.com/tauri-apps/tauri/issues/1817
         // To get around that I have to use invoke-http
+      setIsOpening(true)
       let data = await readBinaryFile(file_path)
-      let f = new File([data], file_name, {
-        type: "application/pdf"
-      })
-      document.documentViewer.openFile(f)
-      setDisplay("none")
+      props.setFileBinary(data)
+      // let f = new File([data], file_name, {
+      //   type: "application/pdf"
+      // })
+      // document.documentViewer.openFile(f)
+      // setDisplay("none")
     }
     catch (err) {
       setDisplay("visible")
@@ -61,6 +64,9 @@ export function FileList() {
   }
 
   return (
+    <div>
+    {
+    is_opening ? <div class="loader"></div> :
     <div style={`display: ${display}`}>
       <button onClick={() => show_dialog()}>Add</button>
       <AddDocumentDialog setFiles={setFiles} />
@@ -75,5 +81,7 @@ export function FileList() {
         {fileElements}
       </table>
     </div>
+    }
+  </div>
   )
 }
