@@ -30,7 +30,7 @@ export function Reader(props) {
       setPagesNumber(page_count)
       track_visibility()
     })()
-  }, [props.fileBinary, placeholder.current===null]);
+  }, [placeholder.current===null]);
 
   useEffect(() => {
     setReadPages(new Array(pagesNumber + Math.floor(pagesNumber / 25)).fill(false))
