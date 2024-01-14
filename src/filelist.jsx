@@ -15,17 +15,18 @@ export function FileList(props) {
   }
   // <AddDocumentDialog setFiles={setFiles} />
 
-  async function open_next() {
+  async function open_next(async_callback) {
     setIsOpening(true)
-    await props.open_next_in_que()
+    await async_callback()//props.open_next_in_que()
     setIsOpening(false)
   }
+
   return (
     <div>
       {
         is_opening ? <div class="loader"></div> :
           <div style={`display: ${display}`}>
-            <button onClick={() => open_next()}>Next in que</button>
+            <button onClick={() => open_next(props.open_next_in_que)}>Next in que</button>
             <button onClick={() => show_dialog()}>Add</button>
             <p>Files</p>
             <table>
@@ -38,7 +39,7 @@ export function FileList(props) {
               {
                 props.books.map(file => (
                   <tr>
-                    <th ><input type="checkbox" /><span onClick={() => props.open_file(file.file_path, file.name,()=>setIsOpening(true))} >{file.name}</span></th>
+                    <th ><input type="checkbox" /><span onClick={() => open_next(()=>props.open_file(file.file_path, file.name))} >{file.name}</span></th>
                     <th>1 day</th>
                     <th><progress id="file" max="100" value={file.priority}></progress></th>
                     <th>{file.tags}</th>

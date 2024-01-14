@@ -15,9 +15,14 @@ export function Reader(props) {
   let placeholder = createRef();
 
   useEffect(() => {
+    if(placeholder.current === null) {
+      return
+    }
     (async () => {
       let pages = document.getElementById("pages")
       console.log({ pages })
+      console.log({binary: props.fileBinary})
+      console.log(document.getElementById("placeholder"))
       document.documentViewer.placeholderDiv = document.getElementById("placeholder");
       document.documentViewer.viewerDivs.pagesDiv = document.getElementById("pages");
       await render_file(props.fileBinary)
@@ -25,7 +30,7 @@ export function Reader(props) {
       setPagesNumber(page_count)
       track_visibility()
     })()
-  }, [props.fileBinary]);
+  }, [props.fileBinary, placeholder.current===null]);
 
   useEffect(() => {
     setReadPages(new Array(pagesNumber + Math.floor(pagesNumber / 25)).fill(false))

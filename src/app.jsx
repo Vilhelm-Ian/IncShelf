@@ -50,7 +50,7 @@ export function App() {
     <div class="container">
       {
         fileBinary.length === 0 ? <FileList open_next_in_que={open_next_in_que} books={books} open_file={open_file} /> :
-          <Reader open_next_in_que={open_next_in_que} fileBinary={fileBinary} />
+          <Reader open_next_in_que={open_next_in_que} key={fileBinary} fileBinary={fileBinary} />
       }
     </div>
   )
