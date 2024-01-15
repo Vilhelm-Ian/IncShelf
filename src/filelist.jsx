@@ -3,12 +3,15 @@ import getFileName from "./utils/get_file_name"
 import { readBinaryFile } from '@tauri-apps/api/fs'
 import { AddDocumentDialog } from "./add_document"
 import { invoke } from '@tauri-apps/api'
+import { DB } from './app'
+import { useContext } from 'preact/hooks'
 
 export function FileList(props) {
   const [fileElements, setFileElemets] = useState([])
   const [display, setDisplay] = useState("visible")
   const [is_opening, setIsOpening] = useState(false)
   //TODO use react context provider to sync que
+  const [books, _] = useContext(DB)
 
   function show_dialog() {
     document.getElementById("add_document_dialog").showModal()
@@ -37,7 +40,7 @@ export function FileList(props) {
                 <th>Tags</th>
               </tr>
               {
-                props.books.map(file => (
+                books.map(file => (
                   <tr>
                     <th ><input type="checkbox" /><span onClick={() => open_next(()=>props.open_file(file.file_path, file.name))} >{file.name}</span></th>
                     <th>1 day</th>
@@ -47,6 +50,7 @@ export function FileList(props) {
                 ))
               }
             </table>
+        <AddDocumentDialog/>
           </div>
       }
     </div >
