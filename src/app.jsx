@@ -4,8 +4,9 @@ import { FileList } from "./filelist"
 import { Reader } from "./reader"
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import { readBinaryFile } from '@tauri-apps/api/fs'
+import { createContext } from 'preact'
 
-
+export const DB = createContext()
 
 export function App() {
   let [fileBinary, setFileBinary] = useState([])
@@ -47,11 +48,13 @@ export function App() {
   }, [])
 
   return (
+    <DB.Provider value={[books, setBooks]}>
     <div class="container">
       {
         fileBinary.length === 0 ? <FileList open_next_in_que={open_next_in_que} books={books} open_file={open_file} /> :
           <Reader open_next_in_que={open_next_in_que} key={fileBinary} fileBinary={fileBinary} />
       }
     </div>
+    </DB.Provider>
   )
 }

@@ -3,11 +3,16 @@ import './app.css'
 import { open } from '@tauri-apps/api/dialog';
 import { openDB, deleteDB, wrap, unwrap } from 'idb';
 import get_file_name from "./utils/get_file_name"
+import { DB } from './app'
+import { useContext } from 'preact/hooks'
+
 
 export function AddDocumentDialog(props) {
   let [file_path, setFilePath] = useState("")
   let [tags, setTags] = useState([])
   let [priority, setPriority] = useState(0)
+  const [_, setBooks] = useContext(DB)
+
   // Open a selection dialog for image files
   async function add_file_path() {
     const selected = await open({
@@ -39,7 +44,7 @@ export function AddDocumentDialog(props) {
       books = JSON.parse(books)
     }
     books.push({name, file_path, priority, tags})
-    props.setFiles(books)
+    setBooks(books)
     localStorage.setItem("books", JSON.stringify(books))
     document.getElementById("add_document_dialog").close()
   }
