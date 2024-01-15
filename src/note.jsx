@@ -17,7 +17,7 @@ export default function Note(props) {
   useEffect(() => {
     let cherry = new Cherry({
       id: "markdown",
-      value: "**hello**",
+      value: text,
       inlineMath: {
         engine: 'MathJax', // katex或MathJax
         src: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js',
