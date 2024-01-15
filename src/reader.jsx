@@ -5,6 +5,7 @@ import Bookmark from "./bookmarks"
 import { HeatMap } from "./heat_map"
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import Cherry from 'cherry-markdown';
+import { signal } from "@preact/signals";
 
 
 export function Reader(props) {
@@ -12,16 +13,17 @@ export function Reader(props) {
   const [pagesNumber, setPagesNumber] = useState(0)
   const [readPages, setReadPages] = useState([])
   const [isLoading, setLoading] = useState(false)
+  const [observer, setObserver] = useState();
   let placeholder = createRef();
 
   useEffect(() => {
-    if(placeholder.current === null) {
+    if (placeholder.current === null) {
       return
     }
     (async () => {
       let pages = document.getElementById("pages")
       console.log({ pages })
-      console.log({binary: props.fileBinary})
+      console.log({ binary: props.fileBinary })
       console.log(document.getElementById("placeholder"))
       document.documentViewer.placeholderDiv = document.getElementById("placeholder");
       document.documentViewer.viewerDivs.pagesDiv = document.getElementById("pages");
@@ -30,7 +32,7 @@ export function Reader(props) {
       setPagesNumber(page_count)
       track_visibility()
     })()
-  }, [placeholder.current===null]);
+  }, [props.fileBinary, placeholder.current === null]);
 
   useEffect(() => {
     setReadPages(new Array(pagesNumber + Math.floor(pagesNumber / 25)).fill(false))
@@ -46,19 +48,26 @@ export function Reader(props) {
   }, [placeholder])
 
   function track_visibility() {
-    let observer = new IntersectionObserver((entries) => {
-      if (!entries[0].isIntersecting) {
-        let page = entries[0].target.querySelector("a").id.match(/\d+/)[0]
-        setReadPages((oldArray) => {
-          let newArray = [...oldArray]
-          newArray[page] = true
-          return newArray
-        }
-        )
-      }
+    let observer = new IntersectionObserver(mark_page_as_read)
+    observer.observe_all_pages = function() {
+      let targets = document.querySelectorAll(".page")
+      targets.forEach(target => this.observe(target))
+    }
+    observer.observe_all_pages()
+    console.log({ observer })
+    setObserver(observer)
+  }
+
+  function mark_page_as_read(entries) {
+    if (entries[0].isIntersecting) {
+      return
+    }
+    let page = entries[0].target.querySelector("a").id.match(/\d+/)[0]
+    setReadPages((oldArray) => {
+      let newArray = [...oldArray]
+      newArray[page] = true
+      return newArray
     })
-    let targets = document.querySelectorAll(".page")
-    targets.forEach(target => observer.observe(target))
   }
 
 
@@ -177,9 +186,9 @@ export function Reader(props) {
   }
 
   async function next_book() {
-   setLoading(true)
-   await props.open_next_in_que()
-   setLoading(false)
+    setLoading(true)
+    await props.open_next_in_que()
+    setLoading(false)
 
   }
 
@@ -190,7 +199,7 @@ export function Reader(props) {
       {
         isLoading ? <div class="loader"></div> :
           <div class="container">
-            <HeatMap readPages={readPages} pages={pagesNumber} />
+            <HeatMap observer={observer} readPages={readPages} pages={pagesNumber} />
             <div id="reader">
               <div id="pages">
               </div>

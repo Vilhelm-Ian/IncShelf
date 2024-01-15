@@ -10,6 +10,7 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@preact/signals": "^1.2.2",
     "@tauri-apps/api": "^1.5.2",
     "cherry-markdown": "^0.8.35",
     "idb": "^8.0.0",
