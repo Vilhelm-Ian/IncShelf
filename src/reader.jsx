@@ -13,7 +13,7 @@ export function Reader(props) {
   const [pagesNumber, setPagesNumber] = useState(0)
   const [readPages, setReadPages] = useState([])
   const [isLoading, setLoading] = useState(false)
-  const [observer, setObserver] = useState();
+  const [observer, setObserver] = useState(new IntersectionObserver(mark_page_as_read));
   let placeholder = createRef();
 
   useEffect(() => {
@@ -48,14 +48,12 @@ export function Reader(props) {
   }, [placeholder])
 
   function track_visibility() {
-    let observer = new IntersectionObserver(mark_page_as_read)
     observer.observe_all_pages = function() {
       let targets = document.querySelectorAll(".page")
       targets.forEach(target => this.observe(target))
     }
     observer.observe_all_pages()
     console.log({ observer })
-    setObserver(observer)
   }
 
   function mark_page_as_read(entries) {
