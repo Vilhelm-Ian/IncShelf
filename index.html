@@ -260,13 +260,13 @@ e.target.files[0].arrayBuffer().then(data=> console.log(data))
 	onchange="open_f(event)" />
 </div>
 </body>
-<script type="module" src="mupdf-view.js"></script>
-<script  type="module" src="mupdf-view-page.js"></script>
+<script type="module" src="/mupdf-view.js"></script>
+<script  type="module" src="/mupdf-view-page.js"></script>
 
 <script type="module">
 "use strict";
-import { MupdfDocumentViewer } from "./mupdf-view-page.js"
-import {mupdfView} from "./mupdf-view.js"
+import { MupdfDocumentViewer } from "/mupdf-view-page.js"
+import {mupdfView} from "/mupdf-view.js"
 let params = new URLSearchParams(window.location.search);
 
 let documentViewer = new MupdfDocumentViewer(mupdfView)

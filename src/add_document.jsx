@@ -5,13 +5,20 @@ import { openDB, deleteDB, wrap, unwrap } from 'idb';
 import get_file_name from "./utils/get_file_name"
 import { DB } from './app'
 import { useContext } from 'preact/hooks'
+import { signal } from '@preact/signals';
 
+let file = signal({
+  file_path:signal(""),
+  file_name:signal(""),
+  priority: signal(0)
+})
+let priority_que = signal([])
 
 export function AddDocumentDialog(props) {
-  let [file_path, setFilePath] = useState("")
   let [tags, setTags] = useState([])
   let [priority, setPriority] = useState(0)
-  const [_, setBooks] = useContext(DB)
+  const [books, setBooks] = useContext(DB)
+
 
   // Open a selection dialog for image files
   async function add_file_path() {
@@ -27,23 +34,29 @@ export function AddDocumentDialog(props) {
       return
     }
     console.log(selected)
-    setFilePath(selected)
+    file.value.file_path.value = selected
+    file.value.file_name.value = await get_file_name(file.value.file_path.value)
+    priority_que.value = [...books].sort((a,b)=>a.priority - b.priority)
   }
 
   function add_tags(e) {
     setTags(e.target.value.split(" "))
   }
 
+  function update_priority(increment) {
+    file.value.priority.value  += increment
+    
+  }
+
   //WANT TO IN THE FUTURE TO USE INDEXDDX
   async function add_to_db() {
-    let name = await get_file_name(file_path)
     let books = localStorage.getItem("books")
-    if( books === null) {
+    if (books === null) {
       books = []
     } else {
       books = JSON.parse(books)
     }
-    books.push({name, file_path, priority, tags})
+    books.push({ name: file.value.file_name.value, file_path: file.value.file_path.value, priority: file.value.priority.value, tags, due_date: Date.now(), interval: 0 })
     setBooks(books)
     localStorage.setItem("books", JSON.stringify(books))
     document.getElementById("add_document_dialog").close()
@@ -53,12 +66,23 @@ export function AddDocumentDialog(props) {
   return (
     <dialog id="add_document_dialog">
       <button onClick={add_file_path}>File</button>
-      <input onChange={(e) => setFilePath(e.target.value)} value={file_path} />
+      <p>file path: {file.value.file_path.value}</p>
+      <input onChange={(e) => file.value.file_path.value = e.target.value} value={file.value.file_path.value} />
       <label>Tags</label>
       <input onChange={add_tags}></input>
       <label>Priority</label>
-      <input onChange={(e) => setPriority(e.target.value)} type="range" min="1" max="100" />
       <button onClick={add_to_db}>Add</button>
+      <div style={file.value.file_path.value === "" ? "display: none;" : "display: flex; flex-direction: cloumn;"}>
+        <ol class="priority_list">
+          {[...books].sort((a,b)=>a.priority-b.priority).toSpliced(file.value.priority.value,0,{name: file.value.file_name.value}).map((element,index) => <li style={index===file.value.priority.value ? "border: solid 1px red;" : "border: solid 1px black" }>{element.name}</li>)
+        }
+        </ol>
+        <div>
+          <input type="numbere" value={file.value.priority.value} max={books.length} />
+          <button style={file.value.priority.value >= books.length ? "display: none" : ""} onClick={()=>update_priority(1)}>up</button>
+          <button style={file.value.priority.value === 0 ? "display: none" : ""} onClick={()=>update_priority(-1)}>Down</button>
+        </div>
+      </div>
     </dialog>
   )
 }
