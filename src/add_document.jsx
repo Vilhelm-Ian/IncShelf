@@ -63,15 +63,11 @@ export function AddDocumentDialog(props) {
   }
   //WANT TO IN THE FUTURE TO USE INDEXDDB
   async function add_to_db() {
-    let books = localStorage.getItem("books")
-    if (books === null) {
-      books = []
-    } else {
-      books = JSON.parse(books)
-    }
-    books.push({ name: file.value.file_name.value, file_path: file.value.file_path.value, priority: file.value.priority.value, tags, due_date: Date.now(), interval: 0 })
-    setBooks(books)
-    localStorage.setItem("books", JSON.stringify(books))
+    setBooks((old_books)=>{
+      let new_books = [...old_books]
+      new_books.push({ name: file.value.file_name.value, file_path: file.value.file_path.value, priority: file.value.priority.value, tags, due_date: Date.now(), interval: 0 })
+      return new_books
+    })
     document.getElementById("add_document_dialog").close()
   }
 
