@@ -43,11 +43,23 @@ export function AddDocumentDialog(props) {
     setTags(e.target.value.split(" "))
   }
 
-  function update_priority(increment) {
-    file.value.priority.value  += increment
-    
+  function increment_priority(increment) {
+    file.value.priority.value  += increment 
   }
 
+  function update_priority(e) {
+    console.log("updating")
+    let value  = e.target.value
+    if(Number.isNaN(Number(value)) || value < 0 || value > books.length || value === "") {
+      e.traget.value = file.value.priority.value
+    console.log("the value should be:",e.target.value)
+      return
+    }
+    console.log("new")
+    console.log(e.target.value)
+    file.value.priority.value = value
+    
+  }
   //WANT TO IN THE FUTURE TO USE INDEXDDX
   async function add_to_db() {
     let books = localStorage.getItem("books")
@@ -78,9 +90,9 @@ export function AddDocumentDialog(props) {
         }
         </ol>
         <div>
-          <input type="numbere" value={file.value.priority.value} max={books.length} />
-          <button style={file.value.priority.value >= books.length ? "display: none" : ""} onClick={()=>update_priority(1)}>up</button>
-          <button style={file.value.priority.value === 0 ? "display: none" : ""} onClick={()=>update_priority(-1)}>Down</button>
+          <input onInput={update_priority} value={file.value.priority.value} max={books.length} />
+          <button style={file.value.priority.value >= books.length ? "display: none" : ""} onClick={()=>increment_priority(1)}>up</button>
+          <button style={file.value.priority.value === 0 ? "display: none" : ""} onClick={()=>increment_priority(-1)}>Down</button>
         </div>
       </div>
     </dialog>
