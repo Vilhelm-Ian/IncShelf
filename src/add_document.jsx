@@ -8,9 +8,9 @@ import { useContext } from 'preact/hooks'
 import { signal } from '@preact/signals';
 
 let file = signal({
-  file_path:signal(""),
-  file_name:signal(""),
-  priority: signal(0)
+  file_path: signal(""),
+  file_name: signal(""),
+  priority: signal(NaN)
 })
 let priority_que = signal([])
 
@@ -35,8 +35,9 @@ export function AddDocumentDialog(props) {
     }
     console.log(selected)
     file.value.file_path.value = selected
+    file.value.priority.value = 0
     file.value.file_name.value = await get_file_name(file.value.file_path.value)
-    priority_que.value = [...books].sort((a,b)=>a.priority - b.priority)
+    priority_que.value = [...books].sort((a, b) => a.priority - b.priority)
   }
 
   function add_tags(e) {
@@ -44,23 +45,23 @@ export function AddDocumentDialog(props) {
   }
 
   function increment_priority(increment) {
-    file.value.priority.value  += increment 
+    file.value.priority.value += increment
   }
 
   function update_priority(e) {
     console.log("updating")
-    let value  = e.target.value
-    if(Number.isNaN(Number(value)) || value < 0 || value > books.length || value === "") {
-      e.traget.value = file.value.priority.value
-    console.log("the value should be:",e.target.value)
+    let value = e.target.value
+    if (Number.isNaN(Number(value)) || value < 0 || value > books.length || value === "") {
+      if (value === "") return
+      e.target.value = Number(file.value.priority)
       return
     }
     console.log("new")
-    console.log(e.target.value)
-    file.value.priority.value = value
-    
+    console.log(Number(e.target.value))
+    file.value.priority.value = Number(value)
+
   }
-  //WANT TO IN THE FUTURE TO USE INDEXDDX
+  //WANT TO IN THE FUTURE TO USE INDEXDDB
   async function add_to_db() {
     let books = localStorage.getItem("books")
     if (books === null) {
@@ -74,6 +75,14 @@ export function AddDocumentDialog(props) {
     document.getElementById("add_document_dialog").close()
   }
 
+  function render_priority_list() {
+    let sorted_que = [...books].sort((a, b) => a.priority - b.priority)
+    if(!Number.isNaN(file.value.priority.value)) {
+      sorted_que.splice(file.value.priority.value, 0, { name: file.value.file_name.value })
+    }
+    return sorted_que.map((element, index) => <li key={element.name} style={index === file.value.priority.value ? "border: solid 1px red;" : "border: solid 1px black"}>{element.name}</li>)
+  }
+
 
   return (
     <dialog id="add_document_dialog">
@@ -84,15 +93,24 @@ export function AddDocumentDialog(props) {
       <input onChange={add_tags}></input>
       <label>Priority</label>
       <button onClick={add_to_db}>Add</button>
-      <div style={file.value.file_path.value === "" ? "display: none;" : "display: flex; flex-direction: cloumn;"}>
+      <div style="display: flex; flex-direction: cloumn;">
         <ol class="priority_list">
-          {[...books].sort((a,b)=>a.priority-b.priority).toSpliced(file.value.priority.value,0,{name: file.value.file_name.value}).map((element,index) => <li style={index===file.value.priority.value ? "border: solid 1px red;" : "border: solid 1px black" }>{element.name}</li>)
+          {
+          render_priority_list()
         }
         </ol>
         <div>
+          {
+          !Number.isNaN(file.value.priority.value) ? 
+          <div>
           <input onInput={update_priority} value={file.value.priority.value} max={books.length} />
-          <button style={file.value.priority.value >= books.length ? "display: none" : ""} onClick={()=>increment_priority(1)}>up</button>
-          <button style={file.value.priority.value === 0 ? "display: none" : ""} onClick={()=>increment_priority(-1)}>Down</button>
+          <button style={file.value.priority.value >= books.length ? "display: none" : ""} onClick={() => increment_priority(1)}>up</button>
+          <button style={file.value.priority.value === 0 ? "display: none" : ""} onClick={() => increment_priority(-1)}>Down</button>
+          </div>
+        :
+        <>
+          </>
+        }
         </div>
       </div>
     </dialog>
