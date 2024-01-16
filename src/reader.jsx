@@ -12,6 +12,7 @@ export function Reader(props) {
   const [highlights, setHighlights] = useState([])
   const [pagesNumber, setPagesNumber] = useState(0)
   const [readPages, setReadPages] = useState([])
+  const [current_page, setPage] = useState(0)
   const [isLoading, setLoading] = useState(false)
   const [observer, setObserver] = useState(new IntersectionObserver(mark_page_as_read));
   let placeholder = createRef();
@@ -57,10 +58,10 @@ export function Reader(props) {
   }
 
   function mark_page_as_read(entries) {
+    let page = Number(entries[0].target.querySelector("a").id.match(/\d+/)[0])
     if (entries[0].isIntersecting) {
       return
     }
-    let page = entries[0].target.querySelector("a").id.match(/\d+/)[0]
     setReadPages((oldArray) => {
       let newArray = [...oldArray]
       newArray[page] = true
@@ -199,6 +200,7 @@ export function Reader(props) {
           <div class="container">
             <HeatMap observer={observer} readPages={readPages} pages={pagesNumber} />
             <div id="reader">
+              <div><input value={current_page}/>{pagesNumber}</div>
               <div id="pages">
               </div>
               <div ref={placeholder} id="placeholder">

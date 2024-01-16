@@ -14,6 +14,7 @@
     "@tauri-apps/api": "^1.5.2",
     "cherry-markdown": "^0.8.35",
     "idb": "^8.0.0",
+    "mupdf": "^0.1.1",
     "preact": "^10.16.0"
   },
   "devDependencies": {
