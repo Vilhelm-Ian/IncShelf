@@ -39,6 +39,15 @@ export function App() {
     await open_file(next_book.file_path,next_book.name)
   }
 
+  //Syncs to local storage
+  useEffect(()=> {
+   console.log(books)
+    if(books.length === 0) {
+      return
+    }
+   localStorage.setItem("books", JSON.stringify(books))
+  },[books])
+
   useEffect(() => {
     let books = JSON.parse(localStorage.getItem("books"))
     if (books !== null) {
