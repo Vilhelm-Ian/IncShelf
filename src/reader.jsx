@@ -4,9 +4,10 @@ import './app.css'
 import Bookmark from "./bookmarks"
 import { HeatMap } from "./heat_map"
 import { ContextMenu } from "./context_menu"
+import { Anki } from './anki'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import Cherry from 'cherry-markdown';
-import {getPosition} from "./utils/get_position"
+import { getPosition } from "./utils/get_position"
 import { signal } from "@preact/signals";
 
 
@@ -17,6 +18,7 @@ export function Reader(props) {
   const [current_page, setPage] = useState(0)
   const [isLoading, setLoading] = useState(false)
   const [observer, setObserver] = useState(new IntersectionObserver(mark_page_as_read));
+  const [isAnkiOpen, setIsAnkiOpen] = useState(new IntersectionObserver(mark_page_as_read));
   let placeholder = createRef();
   let context_menu = createRef();
 
@@ -52,13 +54,13 @@ export function Reader(props) {
   }, [placeholder])
 
   function show_context_menu(e) {
-    if(String(document.getSelection()) === "") {
+    if (String(document.getSelection()) === "") {
       return
     }
     let position = getPosition(e)
     context_menu.current.style.visibility = "visible"
-    context_menu.current.style.top = position.y+"px"
-    context_menu.current.style.left = position.x+"px"
+    context_menu.current.style.top = position.y + "px"
+    context_menu.current.style.left = position.x + "px"
   }
 
   function deselect(e) {
@@ -216,7 +218,7 @@ export function Reader(props) {
           <div class="container">
             <HeatMap observer={observer} readPages={readPages} pages={pagesNumber} />
             <div id="reader">
-              <div><input value={current_page}/>{pagesNumber}</div>
+              <div><input value={current_page} />{pagesNumber}</div>
               <div id="pages">
               </div>
               <div ref={placeholder} id="placeholder">
@@ -232,11 +234,12 @@ export function Reader(props) {
             </div>
             <ul ref={context_menu} class="context_menu">
               <li>Add Note</li>
-              <li>Create Anki Card</li>
+              <li onclick={() => setIsAnkiOpen(true)}>Create Anki Card</li>
               <li>X-Ray(not yet implemented)</li>
               <li>Definition(not yet implemented)</li>
               <li>Translate(not yet implemented)</li>
             </ul>
+            <Anki isOpen={isAnkiOpen} />
           </div>
       }
     </div>

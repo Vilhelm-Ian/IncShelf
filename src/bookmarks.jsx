@@ -2,16 +2,16 @@ import { useState } from 'preact/hooks'
 import preactLogo from './assets/preact.svg'
 import viteLogo from '/vite.svg'
 import './app.css'
-import Anki from "./anki"
+// import Anki from "./anki"
 import Note from "./note"
 
 export default function Bookmark(props) { 
   let [dialog_element, setDialogElement] = useState()
 
-  function open_dialog() {
-    let dialog = <Anki style="display: none;" text={props.text} index={props.index}/>
-    setDialogElement(dialog)
-  }
+  // function open_dialog() {
+  //   let dialog = <Anki style="display: none;" text={props.text} index={props.index}/>
+  //   setDialogElement(dialog)
+  // }
 
   return (
     <div class="bookmark" >

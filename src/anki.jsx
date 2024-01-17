@@ -6,19 +6,24 @@ import './app.css'
 import { invoke, get_field_names } from "./utils/anki_connect"
 import cloze from "./utils/cloze"
 
-
-export default function Anki(props) {
+export function Anki(props) {
   const [decks, setDecks] = useState([])
   const [current_deck, setCurrentDeck] = useState("")
   const [current_model, setCurrentModel] = useState("")
   const [fieldNames, setFieldNames] = useState([])
   const [model_types, setModelTypes] = useState([])
   const [fields, setFields] = useState({})
+  let dialog = createRef()
 
-  const dialog = createRef()
+  useEffect(()=> {
+    if(props.isOpen === true) {
+      dialog.current.showModal()
+    } else {
+      dialog.current.close()
+    }
+  },[props.isOpen])
 
   useEffect(() => {
-    dialog.current.showModal()
     invoke("deckNames", 6).then(res => setDecks(res))
     async function get_names_and_fields() {
       let model_types_result = await invoke("modelNames", 6);
@@ -30,11 +35,6 @@ export default function Anki(props) {
 
   useEffect(() => {
     const keyDownHandler = event => {
-      // console.log('User pressed: ', event.key);
-      // console.log(event.shiftKey)
-      // console.log(event.ctrlKey)
-      // console.log(event.key)
-
       if (event.ctrlKey && event.shiftKey && event.key == "M") {
         cloze()
         console.log("detected")
@@ -80,7 +80,8 @@ export default function Anki(props) {
   }
 
   return (
-    <dialog class="anki" ref={dialog}>
+    <dialog  class="anki" ref={dialog}>
+      <button onclick={()=>dialog.current.close()}>Close</button>
       <label for="decks">Choose a deck</label>
       <select onChange={(e) => setCurrentDeck(e.target.value)} name="decks">
         {decks.map(deck => <option value={deck}>{deck}</option>)}
