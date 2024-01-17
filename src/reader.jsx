@@ -3,8 +3,10 @@ import { createRef } from 'preact'
 import './app.css'
 import Bookmark from "./bookmarks"
 import { HeatMap } from "./heat_map"
+import { ContextMenu } from "./context_menu"
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import Cherry from 'cherry-markdown';
+import {getPosition} from "./utils/get_position"
 import { signal } from "@preact/signals";
 
 
@@ -16,6 +18,7 @@ export function Reader(props) {
   const [isLoading, setLoading] = useState(false)
   const [observer, setObserver] = useState(new IntersectionObserver(mark_page_as_read));
   let placeholder = createRef();
+  let context_menu = createRef();
 
   useEffect(() => {
     if (placeholder.current === null) {
@@ -41,12 +44,36 @@ export function Reader(props) {
 
   useEffect(() => {
     document.addEventListener("mousedown", deselect)
-    document.addEventListener("mouseup", add_note)
+    document.addEventListener("mouseup", show_context_menu)
     return () => {
       document.removeEventListener("mousedown", deselect)
-      document.removeEventListener("mouseup", add_note)
+      document.removeEventListener("mouseup", show_context_menu)
     };
   }, [placeholder])
+
+  function show_context_menu(e) {
+    if(String(document.getSelection()) === "") {
+      return
+    }
+    let position = getPosition(e)
+    context_menu.current.style.visibility = "visible"
+    context_menu.current.style.top = position.y+"px"
+    context_menu.current.style.left = position.x+"px"
+  }
+
+  function deselect(e) {
+    // context_menu.current.style.visibility = "none"
+    if (e.target.id === "add_note") {
+      return
+    }
+    document.getSelection().removeAllRanges()
+    let add_note_button = document.getElementById("add_note")
+    if (add_note_button === null) {
+      return
+    }
+    add_note_button.remove()
+  }
+
 
   function track_visibility() {
     observer.observe_all_pages = function() {
@@ -172,18 +199,6 @@ export function Reader(props) {
     };
   }
 
-  function deselect(e) {
-    if (e.target.id === "add_note") {
-      return
-    }
-    document.getSelection().removeAllRanges()
-    let add_note_button = document.getElementById("add_note")
-    if (add_note_button === null) {
-      return
-    }
-    add_note_button.remove()
-  }
-
   async function next_book() {
     setLoading(true)
     await props.open_next_in_que()
@@ -192,7 +207,8 @@ export function Reader(props) {
   }
 
 
-  let highligt_elements = highlights.map((highlight) => <Bookmark text={highlight.toString()} />)
+  let highligt_elements = highlights.map((highlight) => <Bookmark key={highlight} text={highlight.toString()} />)
+
   return (
     <div>
       {
@@ -214,6 +230,13 @@ export function Reader(props) {
               <button onclick={add_highlight}>add note</button>
               {highligt_elements}
             </div>
+            <ul ref={context_menu} class="context_menu">
+              <li>Add Note</li>
+              <li>Create Anki Card</li>
+              <li>X-Ray(not yet implemented)</li>
+              <li>Definition(not yet implemented)</li>
+              <li>Translate(not yet implemented)</li>
+            </ul>
           </div>
       }
     </div>
