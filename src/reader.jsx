@@ -5,6 +5,7 @@ import Bookmark from "./bookmarks"
 import { HeatMap } from "./heat_map"
 import { ContextMenu } from "./context_menu"
 import { Anki } from './anki'
+import { Note } from './note'
 import 'cherry-markdown/dist/cherry-markdown.min.css'
 import Cherry from 'cherry-markdown';
 import { getPosition } from "./utils/get_position"
@@ -15,12 +16,13 @@ export function Reader(props) {
   const [highlights, setHighlights] = useState([])
   const [pagesNumber, setPagesNumber] = useState(0)
   const [readPages, setReadPages] = useState([])
+  const [mousePosition, setMousePosition] = useState(undefined)
   const [current_page, setPage] = useState(0)
   const [isLoading, setLoading] = useState(false)
   const [observer, setObserver] = useState(new IntersectionObserver(mark_page_as_read));
-  const [isAnkiOpen, setIsAnkiOpen] = useState(new IntersectionObserver(mark_page_as_read));
   let placeholder = createRef();
-  let context_menu = createRef();
+  let pages = createRef();
+  let [selection, setSelection] = useState("")
 
   useEffect(() => {
     if (placeholder.current === null) {
@@ -45,35 +47,29 @@ export function Reader(props) {
   }, [pagesNumber])
 
   useEffect(() => {
-    document.addEventListener("mousedown", deselect)
-    document.addEventListener("mouseup", show_context_menu)
+    let pages = document.getElementById("pages")
+    if(pages.current === null) {
+      return
+    }
+    pages.addEventListener("mousedown", deselect)
+    pages.addEventListener("mouseup", show_context_menu)
     return () => {
-      document.removeEventListener("mousedown", deselect)
-      document.removeEventListener("mouseup", show_context_menu)
+      pages.removeEventListener("mousedown", deselect)
+      pages.removeEventListener("mouseup", show_context_menu)
     };
   }, [placeholder])
 
   function show_context_menu(e) {
-    if (String(document.getSelection()) === "") {
+    let current_selection = document.getSelection().toString()
+    if (current_selection === "") {
       return
     }
-    let position = getPosition(e)
-    context_menu.current.style.visibility = "visible"
-    context_menu.current.style.top = position.y + "px"
-    context_menu.current.style.left = position.x + "px"
+    setMousePosition(getPosition(e))
+    setSelection(current_selection)
   }
 
   function deselect(e) {
-    // context_menu.current.style.visibility = "none"
-    if (e.target.id === "add_note") {
-      return
-    }
-    document.getSelection().removeAllRanges()
-    let add_note_button = document.getElementById("add_note")
-    if (add_note_button === null) {
-      return
-    }
-    add_note_button.remove()
+    setMousePosition(undefined)
   }
 
 
@@ -152,55 +148,6 @@ export function Reader(props) {
     window.getSelection().removeAllRanges()
   }
 
-
-
-  function add_note(e) {
-    let selection = document.getSelection()
-    let selection_text = selection.toString()
-    if (selection_text === "" || e.target.id == "add_note") {
-      return
-    }
-    if (selection.anchorNode.parentElement.parentElement.className !== "text") {
-      return
-    }
-    let new_note = document.createElement("button")
-    new_note.innerText = "Add Note"
-    new_note.id = "add_note"
-    const rect = selection.anchorNode.parentElement.getBoundingClientRect()
-    new_note.style.position = "absolute";
-    new_note.style.left = rect.left + 'px';
-    new_note.style.top = rect.top + document.documentElement.scrollTop + 'px';
-    document.getElementsByTagName("body")[0].appendChild(new_note)
-    new_note.onclick = (e) => {
-      let markdown = document.createElement("div")
-      markdown.id = "markdown"
-      markdown.style.position = "absolute";
-      markdown.style.left = 0;
-      markdown.style.zIndex = 2;
-      markdown.style.top = rect.top + document.documentElement.scrollTop + 'px';
-      markdown.style.height = "auto";
-      document.getElementById("reader").appendChild(markdown)
-      let cherry = new Cherry({
-        id: "markdown",
-        value: selection_text,
-        inlineMath: {
-          engine: 'MathJax',
-          src: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js',
-        },
-        mathBlock: {
-          engine: 'MathJax',
-          src: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js',
-          plugins: true,
-        },
-        editor: {
-          height: "100%"
-        }
-      })
-      document.cherry = cherry
-      e.target.remove()
-    };
-  }
-
   async function next_book() {
     setLoading(true)
     await props.open_next_in_que()
@@ -219,7 +166,7 @@ export function Reader(props) {
             <HeatMap observer={observer} readPages={readPages} pages={pagesNumber} />
             <div id="reader">
               <div><input value={current_page} />{pagesNumber}</div>
-              <div id="pages">
+              <div ref={pages} id="pages">
               </div>
               <div ref={placeholder} id="placeholder">
                 <div >
@@ -232,14 +179,7 @@ export function Reader(props) {
               <button onclick={add_highlight}>add note</button>
               {highligt_elements}
             </div>
-            <ul ref={context_menu} class="context_menu">
-              <li>Add Note</li>
-              <li onclick={() => setIsAnkiOpen(true)}>Create Anki Card</li>
-              <li>X-Ray(not yet implemented)</li>
-              <li>Definition(not yet implemented)</li>
-              <li>Translate(not yet implemented)</li>
-            </ul>
-            <Anki isOpen={isAnkiOpen} />
+            <ContextMenu position={mousePosition} content={selection}/>
           </div>
       }
     </div>
