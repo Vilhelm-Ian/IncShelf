@@ -3,7 +3,7 @@ import preactLogo from './assets/preact.svg'
 import viteLogo from '/vite.svg'
 import './app.css'
 // import Anki from "./anki"
-import Note from "./note"
+import {Note} from "./note"
 
 export default function Bookmark(props) { 
   let [dialog_element, setDialogElement] = useState()

@@ -13,7 +13,8 @@ export function Anki(props) {
   const [fieldNames, setFieldNames] = useState([])
   const [model_types, setModelTypes] = useState([])
   const [fields, setFields] = useState({})
-  let dialog = createRef()
+  const firstField = createRef()
+  const dialog = createRef()
 
   useEffect(()=> {
     if(props.isOpen === true) {
@@ -28,11 +29,21 @@ export function Anki(props) {
     async function get_names_and_fields() {
       let model_types_result = await invoke("modelNames", 6);
       setModelTypes(model_types_result)
-      set_field_names(model_types_result[0])
+      let field_names = await get_field_names(model_types_result[0])
+      setFieldNames(field_names)
     }
     get_names_and_fields()
   }, [])
 
+
+  useEffect(()=> {
+    if(fieldNames.length !== 0) {
+      update_fields(fieldNames[0], props.content)
+      console.log("hi mom")
+      firstField.current.innerText = props.content
+    }
+  }, [props.content, fieldNames.length === 0])
+  
   useEffect(() => {
     const keyDownHandler = event => {
       if (event.ctrlKey && event.shiftKey && event.key == "M") {
@@ -40,23 +51,18 @@ export function Anki(props) {
         console.log("detected")
       }
     };
-
     document.addEventListener('keydown', keyDownHandler);
-
     return () => {
       document.removeEventListener('keydown', keyDownHandler);
     };
   }, []);
 
-
-  function set_field_names(model_type) {
-    get_field_names(model_type).then(names => setFieldNames(names)).catch(err => console.log(err))
-  }
-
-  function update_current_model(model_type) {
+  async function update_current_model(model_type) {
     setCurrentModel(model_type)
-    set_field_names(model_type)
+    let field_names = await get_field_names(model_type)
+    setFieldNames(field_names)
   }
+
 
   function send() {
     console.log(fields)
@@ -81,7 +87,7 @@ export function Anki(props) {
 
   return (
     <dialog  class="anki" ref={dialog}>
-      <button onclick={()=>dialog.current.close()}>Close</button>
+      <button onclick={()=>props.setIsAnkiOpen(false)}>Close</button>
       <label for="decks">Choose a deck</label>
       <select onChange={(e) => setCurrentDeck(e.target.value)} name="decks">
         {decks.map(deck => <option value={deck}>{deck}</option>)}
@@ -90,10 +96,10 @@ export function Anki(props) {
       <select onChange={(e) => update_current_model(e.target.value)} name="note_typese">
         {model_types.map(note_type => <option value={note_type}>{note_type}</option>)}
       </select>
-      {fieldNames.map(field => {
+      {fieldNames.map((field,index) => {
         return <>
           <label>{field}</label>
-          <span name="field" onInput={(e) => update_fields(field, e.currentTarget.textContent)} contenteditable role="textbox" />
+          <span ref={index === 0 ? firstField : ()=>{}} name="field" onInput={(e) => update_fields(field, e.currentTarget.textContent)} contenteditable role="textbox" />
         </>
       })
       }
