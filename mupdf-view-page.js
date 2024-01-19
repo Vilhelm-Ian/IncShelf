@@ -119,7 +119,9 @@ class MupdfPageViewer {
 
 	// TODO - this is destructive and makes other method get null ref errors
 	showError(functionName, error) {
-		console.error(`mupdf.${functionName}: ${error.message}:\n${error.stack}`)
+		console.error(
+			`mupdf.${functionName}: ${error.message}:\n${error.stack}`
+		)
 
 		let div = document.createElement("div")
 		div.classList.add("error")
@@ -131,7 +133,12 @@ class MupdfPageViewer {
 	async mouseDown(event, dpi) {
 		let { x, y } = this._getLocalCoords(event.clientX, event.clientY)
 		// TODO - remove "+ 1"
-		let changed = await this.worker.mouseDownOnPage(this.pageNumber + 1, dpi * devicePixelRatio, x, y)
+		let changed = await this.worker.mouseDownOnPage(
+			this.pageNumber + 1,
+			dpi * devicePixelRatio,
+			x,
+			y
+		)
 		this.mouseIsPressed = true
 		if (changed) {
 			this._invalidatePageImg()
@@ -149,14 +156,29 @@ class MupdfPageViewer {
 				// In case we missed an onmouseup event outside of the frame
 				this.mouseIsPressed = false
 				// TODO - remove "+ 1"
-				changed = await this.worker.mouseUpOnPage(this.pageNumber + 1, dpi * devicePixelRatio, x, y)
+				changed = await this.worker.mouseUpOnPage(
+					this.pageNumber + 1,
+					dpi * devicePixelRatio,
+					x,
+					y
+				)
 			} else {
 				// TODO - remove "+ 1"
-				changed = await this.worker.mouseDragOnPage(this.pageNumber + 1, dpi * devicePixelRatio, x, y)
+				changed = await this.worker.mouseDragOnPage(
+					this.pageNumber + 1,
+					dpi * devicePixelRatio,
+					x,
+					y
+				)
 			}
 		} else {
 			// TODO - remove "+ 1"
-			changed = await this.worker.mouseMoveOnPage(this.pageNumber + 1, dpi * devicePixelRatio, x, y)
+			changed = await this.worker.mouseMoveOnPage(
+				this.pageNumber + 1,
+				dpi * devicePixelRatio,
+				x,
+				y
+			)
 		}
 		if (changed) {
 			this._invalidatePageImg()
@@ -168,7 +190,12 @@ class MupdfPageViewer {
 		let { x, y } = this._getLocalCoords(event.clientX, event.clientY)
 		this.mouseIsPressed = false
 		// TODO - remove "+ 1"
-		let changed = await this.worker.mouseUpOnPage(this.pageNumber + 1, dpi * devicePixelRatio, x, y)
+		let changed = await this.worker.mouseUpOnPage(
+			this.pageNumber + 1,
+			dpi * devicePixelRatio,
+			x,
+			y
+		)
 		if (changed) {
 			this._invalidatePageImg()
 			this._loadPageImg({ dpi })
@@ -183,9 +210,12 @@ class MupdfPageViewer {
 		// This matches the conversion done in `mupdf.js` when `Pixmap.withBbox`
 		// calls `libmupdf._wasm_new_pixmap_with_bbox`.
 		this.rootNode.style.width = (((this.size.width * dpi) / 72) | 0) + "px"
-		this.rootNode.style.height = (((this.size.height * dpi) / 72) | 0) + "px"
-		this.canvasNode.style.width = (((this.size.width * dpi) / 72) | 0) + "px"
-		this.canvasNode.style.height = (((this.size.height * dpi) / 72) | 0) + "px"
+		this.rootNode.style.height =
+			(((this.size.height * dpi) / 72) | 0) + "px"
+		this.canvasNode.style.width =
+			(((this.size.width * dpi) / 72) | 0) + "px"
+		this.canvasNode.style.height =
+			(((this.size.height * dpi) / 72) | 0) + "px"
 	}
 
 	async _loadPageImg(renderArgs) {
@@ -199,8 +229,7 @@ class MupdfPageViewer {
 		if (this.canvasNode?.renderArgs != null) {
 			// If the current image node was rendered with the same arguments
 			// we skip the render.
-			if (renderArgs.dpi === this.canvasNode.renderArgs.dpi)
-				return
+			if (renderArgs.dpi === this.canvasNode.renderArgs.dpi) return
 		}
 
 		let { dpi } = renderArgs
@@ -216,12 +245,14 @@ class MupdfPageViewer {
 				this._updateSize(dpi)
 			}
 			// TODO - remove "+ 1"
-			this.renderPromise = this.worker.drawPageAsPixmap(this.pageNumber + 1, dpi * devicePixelRatio)
+			this.renderPromise = this.worker.drawPageAsPixmap(
+				this.pageNumber + 1,
+				dpi * devicePixelRatio
+			)
 			let imageData = await this.renderPromise
 
 			// if render was aborted, return early
-			if (imageData == null)
-				return
+			if (imageData == null) return
 
 			this.canvasNode.renderArgs = renderArgs
 			this.canvasNode.width = imageData.width
@@ -242,8 +273,7 @@ class MupdfPageViewer {
 	}
 
 	_invalidatePageImg() {
-		if (this.canvasNode)
-			this.canvasNode.renderArgs = null
+		if (this.canvasNode) this.canvasNode.renderArgs = null
 	}
 
 	// TODO - replace "dpi" with "scale"?
@@ -292,7 +322,8 @@ class MupdfPageViewer {
 				for (let line of block.lines) {
 					let text = document.createElement("span")
 					text.style.left = line.bbox.x * scale + "px"
-					text.style.top = (line.y - line.font.size * 0.8) * scale + "px"
+					text.style.top =
+						(line.y - line.font.size * 0.8) * scale + "px"
 					text.style.height = line.bbox.h * scale + "px"
 					text.style.fontSize = line.font.size * scale + "px"
 					text.style.fontFamily = line.font.family
@@ -307,12 +338,12 @@ class MupdfPageViewer {
 			}
 		}
 		for (let i = 0; i < nodes.length; ++i) {
-			if (text_len[i] > 0)
-				html_w[i] = nodes[i].clientWidth
+			if (text_len[i] > 0) html_w[i] = nodes[i].clientWidth
 		}
 		for (let i = 0; i < nodes.length; ++i) {
 			if (text_len[i] > 0)
-				nodes[i].style.letterSpacing = (pdf_w[i] - html_w[i]) / text_len[i] + "px"
+				nodes[i].style.letterSpacing =
+					(pdf_w[i] - html_w[i]) / text_len[i] + "px"
 		}
 	}
 
@@ -372,7 +403,10 @@ class MupdfPageViewer {
 			// Search results were already rendered at the right scale, nothing to be done
 			return
 		}
-		if (this.searchResultObject && searchNeedle == this.searchHitsNode.searchNeedle) {
+		if (
+			this.searchResultObject &&
+			searchNeedle == this.searchHitsNode.searchNeedle
+		) {
 			// Search results were already returned, just need to be rescaled
 			this._applyPageSearch(this.searchResultObject, dpi)
 			return
@@ -391,8 +425,15 @@ class MupdfPageViewer {
 		try {
 			if (this.searchNeedle !== "") {
 				// TODO - remove "+ 1"
-				console.log("SEARCH", this.pageNumber + 1, JSON.stringify(this.searchNeedle))
-				this.searchPromise = this.worker.search(this.pageNumber + 1, this.searchNeedle)
+				console.log(
+					"SEARCH",
+					this.pageNumber + 1,
+					JSON.stringify(this.searchNeedle)
+				)
+				this.searchPromise = this.worker.search(
+					this.pageNumber + 1,
+					this.searchNeedle
+				)
 				this.searchResultObject = await this.searchPromise
 			} else {
 				this.searchResultObject = []
@@ -424,13 +465,24 @@ class MupdfPageViewer {
 
 	_getLocalCoords(clientX, clientY) {
 		const canvas = this.canvasNode
-		let x = clientX - canvas.getBoundingClientRect().left - canvas.clientLeft + canvas.scrollLeft
-		let y = clientY - canvas.getBoundingClientRect().top - canvas.clientTop + canvas.scrollTop
+		let x =
+			clientX -
+			canvas.getBoundingClientRect().left -
+			canvas.clientLeft +
+			canvas.scrollLeft
+		let y =
+			clientY -
+			canvas.getBoundingClientRect().top -
+			canvas.clientTop +
+			canvas.scrollTop
 		return { x, y }
 	}
 }
 
-let zoomLevels = [ 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200 ]
+let zoomLevels = [
+	50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 110, 120, 130, 140, 150, 160,
+	170, 180, 190, 200,
+]
 
 // TODO - Split into separate file
 class MupdfDocumentHandler {
@@ -479,8 +531,7 @@ class MupdfDocumentHandler {
 		// We wait until the user has stopped scrolling to load pages.
 		let scrollTimer = null
 		handler.scrollListener = function (event) {
-			if (scrollTimer !== null)
-				clearTimeout(scrollTimer)
+			if (scrollTimer !== null) clearTimeout(scrollTimer)
 			scrollTimer = setTimeout(() => {
 				scrollTimer = null
 				handler._updateView()
@@ -502,14 +553,23 @@ class MupdfDocumentHandler {
 
 		let pages = new Array(pageCount)
 		for (let i = 0; i < pageCount; ++i) {
-			const page = new MupdfPageViewer(mupdfWorker, i, defaultSize, handler._dpi(), handler.title)
+			const page = new MupdfPageViewer(
+				mupdfWorker,
+				i,
+				defaultSize,
+				handler._dpi(),
+				handler.title
+			)
 			pages[i] = page
 			pagesDiv.appendChild(page.rootNode)
 			handler.pageObserver.observe(page.rootNode)
 		}
 
 		function isPage(element) {
-			return element.tagName === "CANVAS" && element.closest("div.page") != null
+			return (
+				element.tagName === "CANVAS" &&
+				element.closest("div.page") != null
+			)
 		}
 
 		const searchDivInput = document.createElement("input")
@@ -521,8 +581,7 @@ class MupdfDocumentHandler {
 			handler.setSearch(newNeedle)
 		})
 		searchDivInput.addEventListener("keydown", (event) => {
-			if (event.key == "Enter")
-				handler.runSearch(event.shiftKey ? -1 : 1)
+			if (event.key == "Enter") handler.runSearch(event.shiftKey ? -1 : 1)
 		})
 		const ltButton = document.createElement("button")
 		ltButton.innerText = "<"
@@ -538,7 +597,7 @@ class MupdfDocumentHandler {
 		searchStatusDiv.innerText = "-"
 
 		const searchFlex = document.createElement("div")
-		searchFlex.classList = [ "flex" ]
+		searchFlex.classList = ["flex"]
 		searchFlex.append(searchDivInput, ltButton, gtButton, hideButton)
 
 		handler.searchDialogDiv.append(searchFlex, searchStatusDiv)
@@ -552,10 +611,8 @@ class MupdfDocumentHandler {
 			"wheel",
 			(event) => {
 				if (event.ctrlKey || event.metaKey) {
-					if (event.deltaY < 0)
-						handler.zoomIn()
-					else if (event.deltaY > 0)
-						handler.zoomOut()
+					if (event.deltaY < 0) handler.zoomIn()
+					else if (event.deltaY > 0) handler.zoomOut()
 					event.preventDefault()
 				}
 			},
@@ -606,20 +663,17 @@ class MupdfDocumentHandler {
 		// TODO - instead find next larger zoom
 		let curr = zoomLevels.indexOf(this.zoomLevel)
 		let next = zoomLevels[curr + 1]
-		if (next)
-			this.setZoom(next)
+		if (next) this.setZoom(next)
 	}
 
 	zoomOut() {
 		let curr = zoomLevels.indexOf(this.zoomLevel)
 		let next = zoomLevels[curr - 1]
-		if (next)
-			this.setZoom(next)
+		if (next) this.setZoom(next)
 	}
 
 	setZoom(newZoom) {
-		if (this.zoomLevel === newZoom)
-			return
+		if (this.zoomLevel === newZoom) return
 		this.zoomLevel = newZoom
 
 		for (const page of this.pages) {
@@ -670,7 +724,10 @@ class MupdfDocumentHandler {
 
 				searchStatusDiv.textContent = `Searching page ${page}.`
 
-				await this.pages[page]._loadPageSearch(this._dpi(), this.searchNeedle)
+				await this.pages[page]._loadPageSearch(
+					this._dpi(),
+					this.searchNeedle
+				)
 				const hits = this.pages[page].searchResultObject ?? []
 				if (hits.length > 0) {
 					this.pages[page].rootNode.scrollIntoView()
@@ -706,8 +763,7 @@ class MupdfDocumentHandler {
 		let node = this.gridSidebarDiv
 		if (node.style.display === "none" || node.style.display === "")
 			this.showOutline()
-		else
-			this.hideOutline()
+		else this.hideOutline()
 	}
 
 	_buildOutline(listNode, outline) {
@@ -773,7 +829,10 @@ export class MupdfDocumentViewer {
 			loadingText.textContent = "Loading document..."
 			this.placeholderDiv.replaceChildren(loadingText)
 
-			await this.mupdfWorker.openDocumentFromBuffer(await file.arrayBuffer(), file.name)
+			await this.mupdfWorker.openDocumentFromBuffer(
+				await file.arrayBuffer(),
+				file.name
+			)
 			await this._initDocument(file.name)
 		} catch (error) {
 			this.showDocumentError("openFile", error)
@@ -789,8 +848,7 @@ export class MupdfDocumentViewer {
 			this.placeholderDiv.replaceChildren(loadingText)
 
 			let headResponse = await fetch(url, { method: "HEAD" })
-			if (!headResponse.ok)
-				throw new Error("Could not fetch document.")
+			if (!headResponse.ok) throw new Error("Could not fetch document.")
 			let acceptRanges = headResponse.headers.get("Accept-Ranges")
 			let contentLength = headResponse.headers.get("Content-Length")
 			let contentType = headResponse.headers.get("Content-Type")
@@ -801,13 +859,22 @@ export class MupdfDocumentViewer {
 
 			if (acceptRanges === "bytes" && progressive) {
 				console.log("USING HTTP RANGE REQUESTS")
-				await mupdfView.openDocumentFromUrl(url, contentLength, progressive, prefetch, contentType || url)
+				await mupdfView.openDocumentFromUrl(
+					url,
+					contentLength,
+					progressive,
+					prefetch,
+					contentType || url
+				)
 			} else {
 				let bodyResponse = await fetch(url)
 				if (!bodyResponse.ok)
 					throw new Error("Could not fetch document.")
 				let buffer = await bodyResponse.arrayBuffer()
-				await mupdfView.openDocumentFromBuffer(buffer, contentType || url)
+				await mupdfView.openDocumentFromBuffer(
+					buffer,
+					contentType || url
+				)
 			}
 
 			await this._initDocument(url)
@@ -825,17 +892,28 @@ export class MupdfDocumentViewer {
 	}
 
 	async _initDocument(docName) {
-		this.documentHandler = await MupdfDocumentHandler.createHandler(this.mupdfWorker, this.viewerDivs)
+		this.documentHandler = await MupdfDocumentHandler.createHandler(
+			this.mupdfWorker,
+			this.viewerDivs
+		)
 		this.placeholderDiv.replaceChildren()
 
-		console.log("mupdf: Loaded", JSON.stringify(docName), "with", this.documentHandler.pageCount, "pages.")
+		console.log(
+			"mupdf: Loaded",
+			JSON.stringify(docName),
+			"with",
+			this.documentHandler.pageCount,
+			"pages."
+		)
 
 		// Change tab title
 		document.title = this.documentHandler.title || docName
 	}
 
 	showDocumentError(functionName, error) {
-		console.error(`mupdf.${functionName}: ${error.message}:\n${error.stack}`)
+		console.error(
+			`mupdf.${functionName}: ${error.message}:\n${error.stack}`
+		)
 
 		let errorDiv = document.createElement("div")
 		errorDiv.classList.add("error")

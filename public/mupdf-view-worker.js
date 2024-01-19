@@ -34,15 +34,23 @@ importScripts("../lib/mupdf.js")
 const workerMethods = {}
 
 onmessage = async function (event) {
-	let [ func, id, args ] = event.data
+	let [func, id, args] = event.data
 	try {
 		let result = workerMethods[func](...args)
-		postMessage([ "RESULT", id, result ])
+		postMessage(["RESULT", id, result])
 	} catch (error) {
 		if (error instanceof mupdf.TryLaterError) {
 			trylaterQueue.push(event)
 		} else {
-			postMessage([ "ERROR", id, { name: error.name, message: error.message, stack: error.stack } ])
+			postMessage([
+				"ERROR",
+				id,
+				{
+					name: error.name,
+					message: error.message,
+					stack: error.stack,
+				},
+			])
 		}
 	}
 }
@@ -68,8 +76,18 @@ workerMethods.setLogFilters = function (filters) {
 	logFilters = filters
 }
 
-workerMethods.openStreamFromUrl = function (url, contentLength, progressive, prefetch) {
-	openStream = new mupdf.Stream(url, contentLength, Math.max(progressive << 10, 1 << 16), prefetch)
+workerMethods.openStreamFromUrl = function (
+	url,
+	contentLength,
+	progressive,
+	prefetch
+) {
+	openStream = new mupdf.Stream(
+		url,
+		contentLength,
+		Math.max(progressive << 10, 1 << 16),
+		prefetch
+	)
 }
 
 workerMethods.openDocumentFromBuffer = function (buffer, magic) {
@@ -78,7 +96,9 @@ workerMethods.openDocumentFromBuffer = function (buffer, magic) {
 
 workerMethods.openDocumentFromStream = function (magic) {
 	if (openStream == null) {
-		throw new Error("openDocumentFromStream called but no stream has been open")
+		throw new Error(
+			"openDocumentFromStream called but no stream has been open"
+		)
 	}
 	openDocument = mupdf.Document.openDocument(openStream, magic)
 }
@@ -114,7 +134,7 @@ workerMethods.getPageLinks = function (pageNumber) {
 	let links = page.getLinks()
 
 	return links.map((link) => {
-		const [ x0, y0, x1, y1 ] = link.getBounds()
+		const [x0, y0, x1, y1] = link.getBounds()
 
 		let href
 		if (link.isExternal()) {
@@ -148,7 +168,7 @@ workerMethods.search = function (pageNumber, needle) {
 	let result = []
 	for (let hit of hits) {
 		for (let quad of hit) {
-			const [ ulx, uly, urx, ury, llx, lly, lrx, lry ] = quad
+			const [ulx, uly, urx, ury, llx, lly, lrx, lry] = quad
 			result.push({
 				x: ulx,
 				y: uly,
@@ -168,10 +188,10 @@ workerMethods.getPageAnnotations = function (pageNumber, dpi) {
 	}
 
 	const annotations = page.getAnnotations()
-	const doc_to_screen = [ dpi = 72, 0, 0, dpi / 72, 0, 0 ]
+	const doc_to_screen = [(dpi = 72), 0, 0, dpi / 72, 0, 0]
 
 	return annotations.map((annotation) => {
-		const [ x0, y0, x1, y1 ] = Matrix.transformRect(annotation.getBounds())
+		const [x0, y0, x1, y1] = Matrix.transformRect(annotation.getBounds())
 		return {
 			x: x0,
 			y: y0,
@@ -224,4 +244,4 @@ workerMethods.drawPageAsPixmap = function (pageNumber, dpi) {
 	return imageData
 }
 
-postMessage([ "READY", Object.keys(workerMethods) ])
+postMessage(["READY", Object.keys(workerMethods)])

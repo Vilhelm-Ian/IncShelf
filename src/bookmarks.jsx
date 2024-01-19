@@ -1,27 +1,24 @@
-import { useState } from 'preact/hooks'
-import preactLogo from './assets/preact.svg'
-import viteLogo from '/vite.svg'
-import './app.css'
+import { useState } from "preact/hooks"
+import "./app.css"
 // import Anki from "./anki"
-import {Note} from "./note"
+import { Note } from "./note"
 
-export default function Bookmark(props) { 
-  let [dialog_element, setDialogElement] = useState()
+export default function Bookmark(props) {
+	// const [dialogElement, _] = useState()
+	const dialogElement = useState()
 
-  // function open_dialog() {
-  //   let dialog = <Anki style="display: none;" text={props.text} index={props.index}/>
-  //   setDialogElement(dialog)
-  // }
+	function openDialog() {
+		// TODO
+	}
 
-  return (
-    <div class="bookmark" >
-      <p>{props.text}</p>
-      <button>Add Note</button>
-      <button onClick={open_dialog}>Create Anki cards</button>
-      {dialog_element}
-      <Note text={props.text}/>
-      <div id="markdown">
-    </div>
-    </div>
-  )
+	return (
+		<div className="bookmark">
+			<p>{props.text}</p>
+			<button>Add Note</button>
+			<button onClick={openDialog}>Create Anki cards</button>
+			{dialogElement[0]}
+			<Note text={props.text} />
+			<div id="markdown" />
+		</div>
+	)
 }
