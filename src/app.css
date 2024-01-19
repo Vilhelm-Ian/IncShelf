@@ -89,6 +89,7 @@ input {
   grid-template-columns: 10ch repeat(25, 1fr);
   overflow-y: auto;
   align-content: baseline;
+  align-items: center;
   text-align: right;
 }
 

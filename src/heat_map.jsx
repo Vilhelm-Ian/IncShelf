@@ -5,8 +5,7 @@ export function HeatMap(props) {
 
   function goto_page(e) {
     props.observer.disconnect()
-    console.log(e.target.innerHTML)
-    document.documentViewer.documentHandler.goToPage(e.target.innerHTML)
+    document.documentViewer.documentHandler.goToPage(e.target.attributes.page.value)
     props.observer.observe_all_pages()
   }
 
@@ -17,7 +16,7 @@ export function HeatMap(props) {
       if (index % 25 !== 0) {
         current_page += 1;
       }
-      return index % 26 === 0 ? <span key={index}>{current_page+"-"+Number(current_page+25)}</span> : <div value={current_page} className={(props.readPages[index] ? 'read_page' : '') + "tooltip"} onClick={(e) => goto_page(e)} key={index}>{current_page}<span class="tooltiptext">{current_page}</span></div>
+      return index % 26 === 0 ? <span key={index}>{current_page+"-"+Number(current_page+25)}</span> : <div page={current_page} className={(props.readPages[index] ? 'read_page ' : '') + "tooltip"} onClick={(e) => goto_page(e)} key={index}>{current_page}<span class="tooltiptext">{current_page}</span></div>
     })
   }
 
