@@ -17,7 +17,7 @@ export function HeatMap(props) {
       if (index % 25 !== 0) {
         current_page += 1;
       }
-      return index % 26 === 0 ? <span key={index}>{current_page}</span> : <div value={current_page} className={(props.readPages[index] ? 'read_page' : '') + "tooltip"} onClick={(e) => goto_page(e)} key={index}>{current_page}<span class="tooltiptext">{current_page}</span></div>
+      return index % 26 === 0 ? <span key={index}>{current_page+"-"+Number(current_page+25)}</span> : <div value={current_page} className={(props.readPages[index] ? 'read_page' : '') + "tooltip"} onClick={(e) => goto_page(e)} key={index}>{current_page}<span class="tooltiptext">{current_page}</span></div>
     })
   }
 
