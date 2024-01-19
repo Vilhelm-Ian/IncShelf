@@ -33,8 +33,7 @@ mupdfView.ready = new Promise((resolve, reject) => {
 		let type = event.data[0]
 		if (type === "READY") {
 			let methodNames = event.data[1]
-			for (let method of methodNames)
-				mupdfView[method] = wrap(method)
+			for (let method of methodNames) mupdfView[method] = wrap(method)
 			worker.onmessage = onWorkerMessage
 			resolve()
 		} else if (type === "ERROR") {
@@ -47,9 +46,8 @@ mupdfView.ready = new Promise((resolve, reject) => {
 })
 
 function onWorkerMessage(event) {
-	let [ type, id, result ] = event.data
-	if (type === "RESULT")
-		messagePromises.get(id).resolve(result)
+	let [type, id, result] = event.data
+	if (type === "RESULT") messagePromises.get(id).resolve(result)
 	else if (type === "READY")
 		messagePromises.get(id).reject(new Error("Unexpected READY message"))
 	else if (type === "ERROR") {
@@ -58,7 +56,9 @@ function onWorkerMessage(event) {
 		error.stack = result.stack
 		messagePromises.get(id).reject(error)
 	} else
-		messagePromises.get(id).reject(new Error(`Unexpected result type '${type}'`))
+		messagePromises
+			.get(id)
+			.reject(new Error(`Unexpected result type '${type}'`))
 
 	messagePromises.delete(id)
 }
@@ -70,9 +70,8 @@ function wrap(func) {
 			let id = lastPromiseId++
 			messagePromises.set(id, { resolve, reject })
 			if (args[0] instanceof ArrayBuffer)
-				worker.postMessage([ func, id, args ], [ args[0] ])
-			else
-				worker.postMessage([ func, id, args ])
+				worker.postMessage([func, id, args], [args[0]])
+			else worker.postMessage([func, id, args])
 		})
 	}
 }
@@ -82,7 +81,13 @@ mupdfView.setLogFilters = wrap("setLogFilters")
 const wrap_openStreamFromUrl = wrap("openStreamFromUrl")
 const wrap_openDocumentFromStream = wrap("openDocumentFromStream")
 
-mupdfView.openDocumentFromUrl = async function (url, contentLength, progressive, prefetch, magic) {
+mupdfView.openDocumentFromUrl = async function (
+	url,
+	contentLength,
+	progressive,
+	prefetch,
+	magic
+) {
 	await wrap_openStreamFromUrl(url, contentLength, progressive, prefetch)
 	return await wrap_openDocumentFromStream(magic)
 }

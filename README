@@ -1,5 +1,4 @@
-The MuPDF WASM Viewer
-=====================
+# The MuPDF WASM Viewer
 
 This project contains a very simple demo of how to create
 a PDF viewer in the browser using the MuPDF WASM Library.
@@ -13,8 +12,8 @@ this project must be served up by a web server.
 
 In the platform/wasm directory start a stand-alone web server:
 
-	mupdf/platform/wasm $ python -m http.server
+    mupdf/platform/wasm $ python -m http.server
 
 Then open a browser:
 
-	firefox http://localhost:8000/viewer/mupdf-view.html
+    firefox http://localhost:8000/viewer/mupdf-view.html
