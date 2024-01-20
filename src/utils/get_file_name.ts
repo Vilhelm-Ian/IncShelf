@@ -1,8 +1,8 @@
 import { platform } from "@tauri-apps/api/os"
 
-async function getFileName(path) {
+async function getFileName(path: string) {
 	const platformName = await platform()
-	let regex
+	let regex: RegExp
 	if (platformName === "win32") {
 		regex = /[^\\]*\.pdf/
 	} else {

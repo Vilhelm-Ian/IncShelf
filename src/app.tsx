@@ -1,32 +1,57 @@
-import { useState, useEffect } from "preact/hooks"
+import { useState, useEffect, StateUpdater } from "preact/hooks"
 import "./app.css"
-import { FileList } from "./filelist"
-import { Reader } from "./reader"
+import { FileList } from "./filelist.tsx"
+import { Reader } from "./reader.tsx"
 import "cherry-markdown/dist/cherry-markdown.min.css"
 import { readBinaryFile } from "@tauri-apps/api/fs"
 import { createContext } from "preact"
+import { signal } from "@preact/signals"
 
-export const DB = createContext()
+export type Book = {
+	name: string
+	filePath: string
+	priority: number
+	readPages: boolean[]
+	inQue: boolean
+	lastReadPage: number
+	tags: string[]
+	dueDate: Date
+	interval: number
+}
 
+export function newBook(name: string, filePath: string): Book {
+	return {
+		name,
+		filePath,
+		priority: NaN,
+		readPages: [],
+		inQue: true,
+		lastReadPage: 0,
+		tags: [],
+		dueDate: new Date(),
+		interval: 0,
+	}
+}
+
+export const DB = createContext<[Book[], StateUpdater<Book[]>] | undefined>(
+	undefined
+)
 export function App() {
-	const [fileBinary, setFileBinary] = useState([])
-	const [books, setBooks] = useState([])
+	const [fileBinary, setFileBinary] = useState<undefined | Uint8Array>(
+		undefined
+	)
+	const [books, setBooks] = useState<Book[]>([])
+	const error = signal("")
 
-	async function openFile(filePath, fileName) {
+	async function openFile(filePath: string, fileName: string) {
 		try {
 			// let data = await invoke('openFile_binary', { path: filePath })
 			// Opening the file is slow in development because of serde
 			// https://github.com/tauri-apps/tauri/issues/1817
-			// To get around that I have to use invoke-http
 			const data = await readBinaryFile(filePath)
 			setFileBinary(data)
-			// let f = new File([data], fileName, {
-			//   type: "application/pdf"
-			// })
-			// document.documentViewer.openFile(f)
-			// setDisplay("none")
 		} catch (err) {
-			console.log(err)
+			error.value = `Failed opening file ${err.message}`
 		}
 	}
 
@@ -39,7 +64,6 @@ export function App() {
 
 	// Syncs to local storage
 	useEffect(() => {
-		console.log(books)
 		if (books.length === 0) {
 			return
 		}
@@ -50,17 +74,16 @@ export function App() {
 		const books = JSON.parse(localStorage.getItem("books"))
 		if (books !== null) {
 			setBooks(books)
-			console.log("books", books)
 		}
 	}, [])
 
 	return (
 		<DB.Provider value={[books, setBooks]}>
 			<div className="container">
-				{fileBinary.length === 0 ? (
+				<p>{error.value}</p>
+				{fileBinary === undefined ? (
 					<FileList
 						openNextInQue={openNextInQue}
-						books={books}
 						openFile={openFile}
 					/>
 				) : (

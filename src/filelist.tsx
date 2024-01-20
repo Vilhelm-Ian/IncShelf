@@ -1,17 +1,21 @@
 import { useState, useContext } from "preact/hooks"
-import { AddDocumentDialog } from "./add_document"
-import { DB } from "./app"
+import { AddDocumentDialog } from "./add_document.tsx"
+import { DB, Book } from "./app.tsx"
+import { signal } from "@preact/signals"
 
-export function FileList(props) {
+export const isDocumentDialogOpen = signal(false)
+
+type FileListProps = {
+	openNextInQue: () => Promise<any>
+	openFile: (path: string, name: string) => Promise<any>
+}
+
+export function FileList({ openNextInQue, openFile }: FileListProps) {
 	const [isOpening, setIsOpening] = useState(false)
 	// TODO use react context provider to sync que
 	const books = useContext(DB)[0]
 
-	function showDialog() {
-		document.getElementById("add_document_dialog").showModal()
-	}
-
-	async function openNext(callback) {
+	async function openNext(callback: () => Promise<any>) {
 		setIsOpening(true)
 		await callback() // props.openNext_in_que()
 		setIsOpening(false)
@@ -23,10 +27,16 @@ export function FileList(props) {
 				<div className="loader" />
 			) : (
 				<div>
-					<button onClick={() => openNext(props.openNext_in_que)}>
+					<button onClick={() => openNext(openNextInQue)}>
 						Next in que
 					</button>
-					<button onClick={() => showDialog()}>Add</button>
+					<button
+						onClick={() => {
+							isDocumentDialogOpen.value = true
+						}}
+					>
+						Add
+					</button>
 					<p>Files</p>
 					<table>
 						<tr>
@@ -35,15 +45,15 @@ export function FileList(props) {
 							<th>Progress</th>
 							<th>Tags</th>
 						</tr>
-						{books.map((file, index) => (
+						{books.map((file: Book, index: number) => (
 							<tr key={`row${index}`}>
 								<th>
 									<input type="checkbox" />
 									<span
 										onClick={() =>
 											openNext(() =>
-												props.openFile(
-													file.file_path,
+												openFile(
+													file.filePath,
 													file.name
 												)
 											)
@@ -58,7 +68,7 @@ export function FileList(props) {
 										id="file"
 										max="100"
 										value={file.priority}
-									 />
+									/>
 								</th>
 								<th>{file.tags}</th>
 							</tr>

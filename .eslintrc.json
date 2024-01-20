@@ -7,7 +7,8 @@
 		"eslint:recommended",
 		"preact",
 		"standard",
-		"prettier"
+		"prettier",
+		"plugin:@typescript-eslint/recommended"
 	],
 	"parserOptions": {
 		"ecmaVersion": "latest",
@@ -16,12 +17,17 @@
 			"jsx": true
 		}
 	},
+	"parser": "@typescript-eslint/parser",
+	"plugins": [
+		"@typescript-eslint"
+	],
 	"settings": {
 		"react": {
 			"version": "detect"
 		}
 	},
 	"rules": {
+		"no-console": "error",
 		"indent": [
 			"error",
 			"tab"
@@ -37,6 +43,10 @@
 		"semi": [
 			"error",
 			"never"
+		],
+		"@typescript-eslint/consistent-type-definitions": [
+			"error",
+			"type"
 		]
 	}
 }

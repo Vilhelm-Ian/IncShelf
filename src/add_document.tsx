@@ -1,9 +1,11 @@
 import { useState, useContext } from "preact/hooks"
+import { createRef } from "preact"
 import "./app.css"
 import { open } from "@tauri-apps/api/dialog"
-import getFileName from "./utils/get_file_name"
-import { DB } from "./app"
-import { signal } from "@preact/signals"
+import getFileName from "./utils/get_file_name.ts"
+import { DB, newBook } from "./app.tsx"
+import { signal, useSignalEffect } from "@preact/signals"
+import { isDocumentDialogOpen as isOpen } from "./filelist.tsx"
 
 const file = signal({
 	file_path: signal(""),
@@ -13,11 +15,18 @@ const file = signal({
 
 const priorityQue = signal([])
 
-export function AddDocumentDialog(props) {
+export function AddDocumentDialog() {
 	const [tags, setTags] = useState([])
 	const [books, setBooks] = useContext(DB)
+	const dialog = createRef<HTMLDialogElement>()
 
-	// Open a selection dialog for image files
+	useSignalEffect(() => {
+		if (dialog.current === null) {
+			return
+		}
+		isOpen.value ? dialog.current.showModal() : dialog.current.close()
+	})
+
 	async function addFilePath() {
 		const selected = await open({
 			multiple: false,
@@ -32,7 +41,6 @@ export function AddDocumentDialog(props) {
 			// user selected multiple files
 			return
 		}
-		console.log(selected)
 		file.value.file_path.value = selected
 		file.value.priority.value = 0
 		file.value.file_name.value = await getFileName(
@@ -41,54 +49,65 @@ export function AddDocumentDialog(props) {
 		priorityQue.value = [...books].sort((a, b) => a.priority - b.priority)
 	}
 
-	function addTags(e) {
-		setTags(e.target.value.split(" "))
+	function addTags(e: InputEvent) {
+		if (!(e.currentTarget instanceof HTMLInputElement)) {
+			return
+		}
+		setTags(e.currentTarget.value.split(" "))
 	}
 
-	function incrementPriority(increment) {
+	function incrementPriority(increment: number) {
 		file.value.priority.value += increment
 	}
 
-	function updatePriority(e) {
-		console.log("updating")
-		const value = e.target.value
+	function updatePriority(e: InputEvent) {
+		if (!(e.currentTarget instanceof HTMLInputElement)) {
+			return
+		}
+		const value = e.currentTarget.value
+		const convertedValue = Number(value)
 		if (
 			Number.isNaN(Number(value)) ||
-			value < 0 ||
-			value > books.length ||
+			convertedValue < 0 ||
+			convertedValue > books.length ||
 			value === ""
 		) {
 			if (value === "") return
-			e.target.value = Number(file.value.priority)
+			e.currentTarget.value = String(file.value.priority)
 			return
 		}
-		console.log("new")
-		console.log(Number(e.target.value))
 		file.value.priority.value = Number(value)
 	}
-	// WANT TO IN THE FUTURE TO USE INDEXDDB
+	// TODO WANT TO IN THE FUTURE TO USE INDEXDDB
 	async function addToDb() {
 		setBooks((oldBooks) => {
 			const newBooks = [...oldBooks]
 			newBooks.push({
 				name: file.value.file_name.value,
-				file_path: file.value.file_path.value,
+				filePath: file.value.file_path.value,
 				priority: file.value.priority.value,
 				tags,
-				due_date: Date.now(),
+				dueDate: new Date(),
 				interval: 0,
+				inQue: true,
+				lastReadPage: NaN,
+				readPages: [],
 			})
 			return newBooks
 		})
-		document.getElementById("add_document_dialog").close()
+		isOpen.value = false
 	}
 
 	function renderPriorityList() {
 		const sortedQue = [...books].sort((a, b) => a.priority - b.priority)
 		if (!Number.isNaN(file.value.priority.value)) {
-			sortedQue.splice(file.value.priority.value, 0, {
-				name: file.value.file_name.value,
-			})
+			const name = file.value.file_name.value
+			const filePath = file.value.file_name.value
+			sortedQue.splice(
+				file.value.priority.value,
+				0,
+				newBook(name, filePath)
+			)
 		}
 		return sortedQue.map((element, index) => (
 			<li
@@ -105,15 +124,24 @@ export function AddDocumentDialog(props) {
 	}
 
 	return (
-		<dialog id="add_document_dialog">
+		<dialog ref={dialog}>
+			<button
+				onClick={() => {
+					isOpen.value = false
+				}}
+			>
+				Close
+			</button>
 			<button onClick={addFilePath}>File</button>
 			<p>file path: {file.value.file_path.value}</p>
 			<input
-				onChange={(e) => (file.value.file_path.value = e.target.value)}
+				onInput={(e) =>
+					(file.value.file_path.value = e.currentTarget.value)
+				}
 				value={file.value.file_path.value}
 			/>
 			<label>Tags</label>
-			<input onChange={addTags} />
+			<input onInput={(e) => addTags(e)} />
 			<label>Priority</label>
 			<button onClick={addToDb}>Add</button>
 			<div style="display: flex; flex-direction: cloumn;">

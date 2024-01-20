@@ -1,4 +1,9 @@
-export function getPosition(e) {
+export type Position = {
+	x: number
+	y: number
+}
+
+export function getPosition(e: MouseEvent): Position {
 	let posx = 0
 	let posy = 0
 
