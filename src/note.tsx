@@ -1,5 +1,6 @@
 import { StateUpdater, useState, useEffect } from "preact/hooks"
 import { createRef } from "preact"
+import { homeDir } from "@tauri-apps/api/path"
 import { BaseDirectory, writeTextFile } from "@tauri-apps/api/fs"
 import { open } from "@tauri-apps/api/dialog"
 import { signal } from "@preact/signals"
@@ -14,7 +15,7 @@ type NoteProps = {
 }
 
 const name = signal(`${Date.now()}.md`)
-const path = signal<BaseDirectory | string>(BaseDirectory.Home)
+const path = signal<undefined | string>(undefined)
 
 export function Note({ content, isOpen, setIsEditorOpen }: NoteProps) {
 	const editor = createRef()
@@ -23,11 +24,21 @@ export function Note({ content, isOpen, setIsEditorOpen }: NoteProps) {
 	const [easyMDE, setEasyMDE] = useState(undefined)
 
 	useEffect(() => {
+		;(async () => {
+			const dir = await homeDir()
+			path.value = dir
+		})()
+	}, [])
+
+	useEffect(() => {
 		if (dialog.current === null || easyMDE !== undefined) {
 			return
 		}
 		setEasyMDE(() => {
-			const newEditor = new EasyMDE({ element: editor.current })
+			const newEditor = new EasyMDE({
+				element: editor.current,
+				sideBySideFullscreen: false,
+			})
 			newEditor.value(content)
 			return newEditor
 		})
@@ -46,6 +57,7 @@ export function Note({ content, isOpen, setIsEditorOpen }: NoteProps) {
 
 	async function saveFile() {
 		try {
+			// TODO this won't work for windows
 			await writeTextFile(`${path.value}/${name.value}`, easyMDE.value())
 		} catch (err) {
 			error.value = `error: ${err}`
