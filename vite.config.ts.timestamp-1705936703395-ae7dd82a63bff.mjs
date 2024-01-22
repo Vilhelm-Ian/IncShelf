@@ -1,0 +1,23 @@
+// vite.config.ts
+import { defineConfig } from "file:///home/jovan/Documents/programiranje/temp2/node_modules/vite/dist/node/index.js";
+import preact from "file:///home/jovan/Documents/programiranje/temp2/node_modules/@preact/preset-vite/dist/esm/index.mjs";
+var vite_config_default = defineConfig(async () => ({
+  plugins: [preact()],
+  // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
+  //
+  // 1. prevent vite from obscuring rust errors
+  clearScreen: false,
+  // 2. tauri expects a fixed port, fail if that port is not available
+  server: {
+    port: 1420,
+    strictPort: true,
+    watch: {
+      // 3. tell vite to ignore watching `src-tauri`
+      ignored: ["**/src-tauri/**"]
+    }
+  }
+}));
+export {
+  vite_config_default as default
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsidml0ZS5jb25maWcudHMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbImNvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9kaXJuYW1lID0gXCIvaG9tZS9qb3Zhbi9Eb2N1bWVudHMvcHJvZ3JhbWlyYW5qZS90ZW1wMlwiO2NvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9maWxlbmFtZSA9IFwiL2hvbWUvam92YW4vRG9jdW1lbnRzL3Byb2dyYW1pcmFuamUvdGVtcDIvdml0ZS5jb25maWcudHNcIjtjb25zdCBfX3ZpdGVfaW5qZWN0ZWRfb3JpZ2luYWxfaW1wb3J0X21ldGFfdXJsID0gXCJmaWxlOi8vL2hvbWUvam92YW4vRG9jdW1lbnRzL3Byb2dyYW1pcmFuamUvdGVtcDIvdml0ZS5jb25maWcudHNcIjtpbXBvcnQgeyBkZWZpbmVDb25maWcgfSBmcm9tIFwidml0ZVwiXG5pbXBvcnQgcHJlYWN0IGZyb20gXCJAcHJlYWN0L3ByZXNldC12aXRlXCJcblxuLy8gaHR0cHM6Ly92aXRlanMuZGV2L2NvbmZpZy9cbmV4cG9ydCBkZWZhdWx0IGRlZmluZUNvbmZpZyhhc3luYyAoKSA9PiAoe1xuXHRwbHVnaW5zOiBbcHJlYWN0KCldLFxuXG5cdC8vIFZpdGUgb3B0aW9ucyB0YWlsb3JlZCBmb3IgVGF1cmkgZGV2ZWxvcG1lbnQgYW5kIG9ubHkgYXBwbGllZCBpbiBgdGF1cmkgZGV2YCBvciBgdGF1cmkgYnVpbGRgXG5cdC8vXG5cdC8vIDEuIHByZXZlbnQgdml0ZSBmcm9tIG9ic2N1cmluZyBydXN0IGVycm9yc1xuXHRjbGVhclNjcmVlbjogZmFsc2UsXG5cdC8vIDIuIHRhdXJpIGV4cGVjdHMgYSBmaXhlZCBwb3J0LCBmYWlsIGlmIHRoYXQgcG9ydCBpcyBub3QgYXZhaWxhYmxlXG5cdHNlcnZlcjoge1xuXHRcdHBvcnQ6IDE0MjAsXG5cdFx0c3RyaWN0UG9ydDogdHJ1ZSxcblx0XHR3YXRjaDoge1xuXHRcdFx0Ly8gMy4gdGVsbCB2aXRlIHRvIGlnbm9yZSB3YXRjaGluZyBgc3JjLXRhdXJpYFxuXHRcdFx0aWdub3JlZDogW1wiKiovc3JjLXRhdXJpLyoqXCJdLFxuXHRcdH0sXG5cdH0sXG59KSlcbiJdLAogICJtYXBwaW5ncyI6ICI7QUFBNlMsU0FBUyxvQkFBb0I7QUFDMVUsT0FBTyxZQUFZO0FBR25CLElBQU8sc0JBQVEsYUFBYSxhQUFhO0FBQUEsRUFDeEMsU0FBUyxDQUFDLE9BQU8sQ0FBQztBQUFBO0FBQUE7QUFBQTtBQUFBLEVBS2xCLGFBQWE7QUFBQTtBQUFBLEVBRWIsUUFBUTtBQUFBLElBQ1AsTUFBTTtBQUFBLElBQ04sWUFBWTtBQUFBLElBQ1osT0FBTztBQUFBO0FBQUEsTUFFTixTQUFTLENBQUMsaUJBQWlCO0FBQUEsSUFDNUI7QUFBQSxFQUNEO0FBQ0QsRUFBRTsiLAogICJuYW1lcyI6IFtdCn0K

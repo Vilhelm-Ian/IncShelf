@@ -6,19 +6,24 @@ import getFileName from "./utils/get_file_name.ts"
 import { DB, newBook } from "./app.tsx"
 import { signal, useSignalEffect } from "@preact/signals"
 import { isDocumentDialogOpen as isOpen } from "./filelist.tsx"
+import { exists } from "@tauri-apps/api/fs"
 
 const file = signal({
 	file_path: signal(""),
 	file_name: signal(""),
 	priority: signal(NaN),
 })
-
-const priorityQue = signal([])
+const error = signal("")
 
 export function AddDocumentDialog() {
 	const [tags, setTags] = useState([])
 	const [books, setBooks] = useContext(DB)
 	const dialog = createRef<HTMLDialogElement>()
+	const [que, setQue] = useState([])
+
+	useSignalEffect(() => {
+		renderPriorityList().then((queRendered) => setQue(queRendered))
+	})
 
 	useSignalEffect(() => {
 		if (dialog.current === null) {
@@ -28,25 +33,32 @@ export function AddDocumentDialog() {
 	})
 
 	async function addFilePath() {
-		const selected = await open({
-			multiple: false,
-			filters: [
-				{
-					name: "Document",
-					extensions: ["pdf"],
-				},
-			],
-		})
-		if (Array.isArray(selected) || selected === null) {
-			// user selected multiple files
-			return
+		try {
+			const selected = await open({
+				multiple: false,
+				filters: [
+					{
+						name: "Document",
+						extensions: ["pdf"],
+					},
+				],
+			})
+			if (Array.isArray(selected) || selected === null) {
+				// user selected multiple files
+				return
+			}
+			file.value.file_path.value = selected
+			file.value.priority.value = 0
+			file.value.file_name.value = await getFileName(
+				file.value.file_path.value
+			)
+		} catch (err) {
+			if (err.message === undefined) {
+				error.value = err
+			} else {
+				error.value = err.message
+			}
 		}
-		file.value.file_path.value = selected
-		file.value.priority.value = 0
-		file.value.file_name.value = await getFileName(
-			file.value.file_path.value
-		)
-		priorityQue.value = [...books].sort((a, b) => a.priority - b.priority)
 	}
 
 	function addTags(e: InputEvent) {
@@ -98,16 +110,28 @@ export function AddDocumentDialog() {
 		isOpen.value = false
 	}
 
-	function renderPriorityList() {
+	async function renderPriorityList(): Promise<any> {
 		const sortedQue = [...books].sort((a, b) => a.priority - b.priority)
 		if (!Number.isNaN(file.value.priority.value)) {
 			const name = file.value.file_name.value
 			const filePath = file.value.file_name.value
-			sortedQue.splice(
-				file.value.priority.value,
-				0,
-				newBook(name, filePath)
-			)
+			try {
+				if (await canAdd()) {
+					sortedQue.splice(
+						file.value.priority.value,
+						0,
+						newBook(name, filePath)
+					)
+				}
+				error.value = ""
+			} catch (err) {
+				restartFileSignal()
+				if (err.message === undefined) {
+					error.value = err
+				} else {
+					error.value = err.message
+				}
+			}
 		}
 		return sortedQue.map((element, index) => (
 			<li
@@ -123,8 +147,39 @@ export function AddDocumentDialog() {
 		))
 	}
 
+	function restartFileSignal() {
+		file.value.file_name.value = ""
+		file.value.file_path.value = ""
+		file.value.priority.value = NaN
+	}
+
+	async function canAdd(): Promise<boolean> {
+		if (books.some((book) => book.name === file.value.file_name.value)) {
+			throw new Error("file already exists")
+		}
+		const doesExist = await exists(file.value.file_path.value)
+		if (!doesExist) {
+			throw new Error("file dosen't exist")
+		}
+		return true
+	}
+
+	async function updatePath(e: InputEvent) {
+		try {
+			if (e.currentTarget instanceof HTMLInputElement) {
+				file.value.file_path.value = e.currentTarget.value
+				file.value.file_name.value = await getFileName(
+					file.value.file_path.value
+				)
+			}
+		} catch (err) {
+			error.value = err.message
+		}
+	}
+
 	return (
 		<dialog ref={dialog}>
+			<p>{error.value}</p>
 			<button
 				onClick={() => {
 					isOpen.value = false
@@ -134,18 +189,18 @@ export function AddDocumentDialog() {
 			</button>
 			<button onClick={addFilePath}>File</button>
 			<p>file path: {file.value.file_path.value}</p>
-			<input
-				onInput={(e) =>
-					(file.value.file_path.value = e.currentTarget.value)
-				}
-				value={file.value.file_path.value}
-			/>
+			<input onInput={updatePath} value={file.value.file_path.value} />
 			<label>Tags</label>
 			<input onInput={(e) => addTags(e)} />
 			<label>Priority</label>
-			<button onClick={addToDb}>Add</button>
+			<button
+				style={`display: ${error.value !== "" ? "none" : "visible"}`}
+				onClick={addToDb}
+			>
+				Add
+			</button>
 			<div style="display: flex; flex-direction: cloumn;">
-				<ol className="priority_list">{renderPriorityList()}</ol>
+				<ol className="priority_list">{que}</ol>
 				<div>
 					{!Number.isNaN(file.value.priority.value) ? (
 						<div>
