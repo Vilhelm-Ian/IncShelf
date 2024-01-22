@@ -57,7 +57,11 @@ export function Note({ content, isOpen, setIsEditorOpen }: NoteProps) {
 
 	async function saveFile() {
 		try {
-			await writeTextFile(join(path.value, name.value), easyMDE.value())
+			await writeTextFile(
+				await join(path.value, name.value),
+				easyMDE.value()
+			)
+			setIsEditorOpen(false)
 		} catch (err) {
 			error.value = `error: ${err}`
 		}
