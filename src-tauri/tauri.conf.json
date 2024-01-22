@@ -23,6 +23,7 @@
 				"readFile": true,
 				"readDir": true,
 				"writeFile": true,
+				"exists": true,
 				"scope": [
 					"$HOME/**"
 				]

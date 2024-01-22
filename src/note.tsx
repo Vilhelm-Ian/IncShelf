@@ -1,7 +1,7 @@
 import { StateUpdater, useState, useEffect } from "preact/hooks"
 import { createRef } from "preact"
-import { homeDir } from "@tauri-apps/api/path"
-import { BaseDirectory, writeTextFile } from "@tauri-apps/api/fs"
+import { homeDir, join } from "@tauri-apps/api/path"
+import { writeTextFile } from "@tauri-apps/api/fs"
 import { open } from "@tauri-apps/api/dialog"
 import { signal } from "@preact/signals"
 import EasyMDE from "easymde"
@@ -16,11 +16,11 @@ type NoteProps = {
 
 const name = signal(`${Date.now()}.md`)
 const path = signal<undefined | string>(undefined)
+const error = signal("")
 
 export function Note({ content, isOpen, setIsEditorOpen }: NoteProps) {
 	const editor = createRef()
 	const dialog = createRef()
-	const error = signal("")
 	const [easyMDE, setEasyMDE] = useState(undefined)
 
 	useEffect(() => {
@@ -57,8 +57,7 @@ export function Note({ content, isOpen, setIsEditorOpen }: NoteProps) {
 
 	async function saveFile() {
 		try {
-			// TODO this won't work for windows
-			await writeTextFile(`${path.value}/${name.value}`, easyMDE.value())
+			await writeTextFile(join(path.value, name.value), easyMDE.value())
 		} catch (err) {
 			error.value = `error: ${err}`
 		}
@@ -75,7 +74,7 @@ export function Note({ content, isOpen, setIsEditorOpen }: NoteProps) {
 		if (!(e.currentTarget instanceof HTMLInputElement)) {
 			return
 		}
-		name.value = e.currentTarget.value
+		path.value = e.currentTarget.value
 	}
 
 	async function openDir() {
