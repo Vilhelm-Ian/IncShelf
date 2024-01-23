@@ -3,6 +3,7 @@
     "stylelint-config-standard"
   ],
   "rules": {
-    "property-no-vendor-prefix": null
+    "property-no-vendor-prefix": null,
+    "color-function-notation": "legacy"
   }
 }

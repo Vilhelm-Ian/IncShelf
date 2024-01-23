@@ -20,7 +20,11 @@ export function Reader({ fileBinary, openNextInQue }: ReaderProps) {
 	const [readPages, setReadPages] = useState([])
 	const [mousePosition, setMousePosition] = useState(undefined)
 	const [isLoading, setLoading] = useState(false)
-	observer.value = new IntersectionObserver(markPageAsRead)
+	const [documentViewer, setDocumentViewer] = useState(undefined)
+	observer.value =
+		observer.value === undefined
+			? new IntersectionObserver(markPageAsRead)
+			: observer.value
 
 	const placeholder = createRef()
 	const pages = createRef()
@@ -29,18 +33,19 @@ export function Reader({ fileBinary, openNextInQue }: ReaderProps) {
 	useEffect(() => {
 		// TODO handle failure
 		;(async () => {
-			const documentViewer = new MupdfDocumentViewer(mupdfView)
+			const newDocumentViewer = new MupdfDocumentViewer(mupdfView)
 			const f = new File([fileBinary], "todo", {
 				type: "application/pdf",
 			})
-			await documentViewer.openFile(f)
-			const pageCount = documentViewer.documentHandler.pageCount
+			await newDocumentViewer.openFile(f)
+			const pageCount = newDocumentViewer.documentHandler.pageCount
 			setPagesNumber(pageCount)
 			observer.value.observe_all_pages = function () {
 				const targets = document.querySelectorAll(".page")
 				targets.forEach((target) => this.observe(target))
 			}
 			observer.value.observe_all_pages()
+			setDocumentViewer(newDocumentViewer)
 		})()
 	}, [])
 
@@ -77,7 +82,7 @@ export function Reader({ fileBinary, openNextInQue }: ReaderProps) {
 		const page = Number(
 			entries[0].target.querySelector("a").id.match(/\d+/)[0]
 		)
-		if (entries[0].isIntersecting) {
+		if (entries[0].isIntersecting || entries[0].boundingClientRect.y > 0) {
 			return
 		}
 		setReadPages((oldArray) => {
@@ -99,7 +104,11 @@ export function Reader({ fileBinary, openNextInQue }: ReaderProps) {
 				<div className="loader" />
 			) : (
 				<>
-					<HeatMap readPages={readPages} pages={pagesNumber} />
+					<HeatMap
+						documentViewer={documentViewer}
+						readPages={readPages}
+						pages={pagesNumber}
+					/>
 					<div id="reader">
 						<div>{pagesNumber}</div>
 						<div ref={pages} id="pages" />
