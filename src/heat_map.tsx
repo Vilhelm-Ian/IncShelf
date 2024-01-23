@@ -4,13 +4,14 @@ import { observer } from "./reader.tsx"
 type HeatMapProps = {
 	pages: number
 	readPages: boolean[]
+	documentViewer: any
 }
 
-export function HeatMap({ pages, readPages }: HeatMapProps) {
+export function HeatMap({ pages, readPages, documentViewer }: HeatMapProps) {
 	function gotoPage(index: number) {
-		observer.value.disconnect()
-		document.documentViewer.documentHandler.goToPage(index)
-		observer.value.observe_all_pages()
+		observer.value?.disconnect()
+		documentViewer?.documentHandler.goToPage(index)
+		observer.value?.observe_all_pages()
 	}
 
 	function renderHeatMap() {
@@ -21,6 +22,7 @@ export function HeatMap({ pages, readPages }: HeatMapProps) {
 				if (index % 25 !== 0) {
 					currentPage += 1
 				}
+				const pageValue = currentPage
 				return index % 26 === 0 ? (
 					<span key={`page${index}`}>
 						{`${currentPage}-${Number(currentPage + 25)}`}
@@ -28,7 +30,7 @@ export function HeatMap({ pages, readPages }: HeatMapProps) {
 				) : (
 					<div
 						className={`${readPages[index] ? "read-page " : ""}tooltip`}
-						onClick={() => gotoPage(currentPage)}
+						onClick={() => gotoPage(pageValue)}
 						key={`page${index}`}
 					>
 						{currentPage}

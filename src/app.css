@@ -12,7 +12,7 @@
 
 .highlight>span,
 .highlight {
-	background-color: rgba(0 0 255 30%);
+	background-color: rgba(0, 0, 255, 30%);
 }
 
 .highlight {
@@ -54,7 +54,7 @@
 
 .anki-field>span {
 	text-align: initial;
-	background: rgb(45 45 45);
+	background: rgb(45, 45, 45);
 	border: 1px solid #ccc;
 }
 
@@ -96,7 +96,7 @@ input {
 
 .heat-map>div {
 	border: solid white;
-	color: rgba(0 0 0 0);
+	color: rgba(0, 0, 0, 0%);
 	aspect-ratio: 1/1;
 }
 
