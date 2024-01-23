@@ -9,9 +9,9 @@ type HeatMapProps = {
 
 export function HeatMap({ pages, readPages, documentViewer }: HeatMapProps) {
 	function gotoPage(index: number) {
-		observer.value?.disconnect()
-		documentViewer?.documentHandler.goToPage(index)
-		observer.value?.observe_all_pages()
+		observer.value.stopObserving()
+		documentViewer.documentHandler.goToPage(index)
+		observer.value.observeAllPages()
 	}
 
 	function renderHeatMap() {
@@ -39,5 +39,22 @@ export function HeatMap({ pages, readPages, documentViewer }: HeatMapProps) {
 				)
 			})
 	}
-	return <div className="heat-map">{renderHeatMap()}</div>
+
+	function toggleObserving() {
+		if (observer.value.observingAll) {
+			observer.value.stopObserving()
+		} else {
+			observer.value.observeAllPages()
+		}
+	}
+
+	return (
+		<>
+			<div className="reading-options">
+				<button onClick={toggleObserving}>Toggle auto mark</button>
+				<button />
+			</div>
+			<div className="heat-map">{renderHeatMap()}</div>
+		</>
+	)
 }
