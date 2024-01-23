@@ -40,11 +40,16 @@ export function Reader({ fileBinary, openNextInQue }: ReaderProps) {
 			await newDocumentViewer.openFile(f)
 			const pageCount = newDocumentViewer.documentHandler.pageCount
 			setPagesNumber(pageCount)
-			observer.value.observe_all_pages = function () {
+			observer.value.observeAllPages = function () {
+				this.observingAll = true
 				const targets = document.querySelectorAll(".page")
 				targets.forEach((target) => this.observe(target))
 			}
-			observer.value.observe_all_pages()
+			observer.value.stopObserving = function () {
+				this.disconnect()
+				this.observingAll = false
+			}
+			observer.value.observeAllPages()
 			setDocumentViewer(newDocumentViewer)
 		})()
 	}, [])
@@ -79,12 +84,20 @@ export function Reader({ fileBinary, openNextInQue }: ReaderProps) {
 	}
 
 	function markPageAsRead(entries: IntersectionObserverEntry[]) {
-		const page = Number(
-			entries[0].target.querySelector("a").id.match(/\d+/)[0]
-		)
 		if (entries[0].isIntersecting || entries[0].boundingClientRect.y > 0) {
 			return
 		}
+		// Basically if a user goes to a page we disconnect the observer from observing
+		// And start observing after jumping a page
+		// An issue with this approach is that all pages we be counted as entries
+		// So if a user jumps from page 5 to page 10 and the book has 200 pages and
+		// it will have 200 entries after observing again
+		if (entries.length > 10) {
+			return
+		}
+		const page = Number(
+			entries[0].target.querySelector("a").id.match(/\d+/)[0]
+		)
 		setReadPages((oldArray) => {
 			const newArray = [...oldArray]
 			newArray[page] = true

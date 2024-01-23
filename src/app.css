@@ -74,9 +74,15 @@ input {
 	width: 70%;
 }
 
-.heat-map {
+.reading-options {
 	position: sticky;
 	top: 5%;
+	height: 10%;
+}
+
+.heat-map {
+	position: sticky;
+	top: 20%;
 	height: 100vh;
 	display: grid;
 	gap: 0.3rem;
