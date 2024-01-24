@@ -17,6 +17,7 @@ export type Book = {
 	tags: string[]
 	dueDate: Date
 	interval: number
+	numberOfReadPages: number
 }
 
 export function newBook(name: string, filePath: string): Book {
@@ -30,6 +31,7 @@ export function newBook(name: string, filePath: string): Book {
 		tags: [],
 		dueDate: new Date(),
 		interval: 0,
+		numberOfReadPages: 0,
 	}
 }
 

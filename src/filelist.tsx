@@ -61,9 +61,12 @@ export function FileList({ openNextInQue }: FileListProps) {
 								<th>1 day</th>
 								<th>
 									<progress
-										id="file"
 										max="100"
-										value={file.priority}
+										value={
+											(file.numberOfReadPages /
+												file.readPages.length) *
+											100
+										}
 									/>
 								</th>
 								<th>{file.tags}</th>
