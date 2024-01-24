@@ -104,6 +104,7 @@ export function Reader({ openNextInQue }: ReaderProps) {
 			const newBooks = [...oldBooks]
 			newBooks[index].readPages[page] = true
 			newBooks[index].lastReadPage = page
+			newBooks[index].numberOfReadPages += 1
 			return newBooks
 		})
 	}

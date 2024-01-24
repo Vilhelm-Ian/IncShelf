@@ -103,6 +103,7 @@ export function AddDocumentDialog() {
 				inQue: true,
 				lastReadPage: 0,
 				readPages: [],
+				numberOfReadPages: 0,
 			})
 			return newBooks
 		})

@@ -11,7 +11,7 @@ type HeatMapProps = {
 const currentPage = signal(0)
 
 export function HeatMap({ documentViewer }: HeatMapProps) {
-	const [books, setBooks, index] = useContext(DB)
+	const [books, setBooks, index, setIndex] = useContext(DB)
 
 	useEffect(() => {
 		const currentPageObserver = new PageObserver(getCurrentPage, {
@@ -78,6 +78,7 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 	return (
 		<div className="name-later">
 			<div className="reading-options">
+				<button onClick={() => setIndex(null)}>Back</button>
 				<button onClick={toggleObserving}>Toggle auto mark</button>
 				<button onClick={togglePageAsRead}>Toggle page as read</button>
 				<p>Current Page</p>
