@@ -75,19 +75,19 @@ input {
 }
 
 .reading-options {
+	display: flex;
+	flex-direction: column;
 	position: sticky;
 	top: 5%;
-	height: 10%;
 }
 
 .heat-map {
-	position: sticky;
-	top: 20%;
 	height: 100vh;
 	display: grid;
 	gap: 0.3rem;
 	grid-template-columns: 10ch repeat(25, 1fr);
-	overflow-y: auto;
+	padding-right: 1rem;
+	overflow: hidden, auto;
 	align-content: baseline;
 	align-items: center;
 	text-align: right;
@@ -177,4 +177,9 @@ input {
 	visibility: hidden;
 	background: black;
 	position: absolute;
+}
+
+.name-later {
+	display: flex;
+	flex-direction: column;
 }

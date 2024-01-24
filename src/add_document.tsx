@@ -44,8 +44,7 @@ export function AddDocumentDialog() {
 				],
 			})
 			if (Array.isArray(selected) || selected === null) {
-				// user selected multiple files
-				return
+				throw new Error("selected multiple or zero files")
 			}
 			file.value.file_path.value = selected
 			file.value.priority.value = 0
@@ -90,7 +89,7 @@ export function AddDocumentDialog() {
 		}
 		file.value.priority.value = Number(value)
 	}
-	// TODO WANT TO IN THE FUTURE TO USE INDEXDDB
+	// TODO WANT TO IN THE FUTURE TO USE SQL
 	async function addToDb() {
 		setBooks((oldBooks) => {
 			const newBooks = [...oldBooks]
@@ -102,7 +101,7 @@ export function AddDocumentDialog() {
 				dueDate: new Date(),
 				interval: 0,
 				inQue: true,
-				lastReadPage: NaN,
+				lastReadPage: 0,
 				readPages: [],
 			})
 			return newBooks
