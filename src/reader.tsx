@@ -1,4 +1,4 @@
-import { useState, useEffect } from "preact/hooks"
+import { useState, useEffect, useContext } from "preact/hooks"
 import { signal } from "@preact/signals"
 import { createRef } from "preact"
 import "./app.css"
@@ -7,58 +7,57 @@ import { ContextMenu } from "./context_menu.tsx"
 import { getPosition } from "./utils/get_position.ts"
 import { MupdfDocumentViewer } from "../mupdf-view-page.js"
 import { mupdfView } from "../mupdf-view.js"
+import { DB } from "./app.tsx"
+import { readBinaryFile, exists } from "@tauri-apps/api/fs"
 
 export const observer = signal(undefined)
+export const pages = signal(0)
+const error = signal("")
 
 type ReaderProps = {
-	fileBinary: Uint8Array
 	openNextInQue: () => Promise<any>
 }
 
-export function Reader({ fileBinary, openNextInQue }: ReaderProps) {
-	const [pagesNumber, setPagesNumber] = useState(null)
-	const [readPages, setReadPages] = useState([])
+export function Reader({ openNextInQue }: ReaderProps) {
 	const [mousePosition, setMousePosition] = useState(undefined)
-	const [isLoading, setLoading] = useState(false)
+	const [isLoading, setLoading] = useState(true)
 	const [documentViewer, setDocumentViewer] = useState(undefined)
+	const [books, setBooks, index] = useContext(DB)
+
 	observer.value =
 		observer.value === undefined
-			? new IntersectionObserver(markPageAsRead)
+			? new PageObserver(markPageAsRead)
 			: observer.value
 
 	const placeholder = createRef()
-	const pages = createRef()
 	const [selection, setSelection] = useState(undefined)
 
 	useEffect(() => {
-		// TODO handle failure
 		;(async () => {
-			const newDocumentViewer = new MupdfDocumentViewer(mupdfView)
-			const f = new File([fileBinary], "todo", {
-				type: "application/pdf",
-			})
-			await newDocumentViewer.openFile(f)
-			const pageCount = newDocumentViewer.documentHandler.pageCount
-			setPagesNumber(pageCount)
-			observer.value.observeAllPages = function () {
-				this.observingAll = true
-				const targets = document.querySelectorAll(".page")
-				targets.forEach((target) => this.observe(target))
+			try {
+				if (!(await exists(books[index].filePath))) {
+					throw new Error("file dosen't exist")
+				}
+				const newDocumentViewer = new MupdfDocumentViewer(mupdfView)
+				setDocumentViewer(newDocumentViewer)
+				const data = await readBinaryFile(books[index].filePath)
+				const f = new File([data], "todo", {
+					type: "application/pdf",
+				})
+				await newDocumentViewer.openFile(f)
+				// eslint-disable-next-line
+				pages.value = newDocumentViewer.documentHandler.pageCount
+				newDocumentViewer.documentHandler.goToPage(
+					books[index].lastReadPage
+				)
+				observer.value.observeAllPages()
+				setDocumentViewer(newDocumentViewer)
+				setLoading(false)
+			} catch (err) {
+				error.value = err
 			}
-			observer.value.stopObserving = function () {
-				this.disconnect()
-				this.observingAll = false
-			}
-			observer.value.observeAllPages()
-			setDocumentViewer(newDocumentViewer)
 		})()
 	}, [])
-
-	useEffect(() => {
-		setReadPages(
-			new Array(pagesNumber + Math.floor(pagesNumber / 25)).fill(false)
-		)
-	}, [pagesNumber])
 
 	useEffect(() => {
 		const pages = document.getElementById("pages")
@@ -92,16 +91,20 @@ export function Reader({ fileBinary, openNextInQue }: ReaderProps) {
 		// An issue with this approach is that all pages we be counted as entries
 		// So if a user jumps from page 5 to page 10 and the book has 200 pages and
 		// it will have 200 entries after observing again
-		if (entries.length > 10) {
+		if (entries.length > 3) {
 			return
 		}
 		const page = Number(
 			entries[0].target.querySelector("a").id.match(/\d+/)[0]
 		)
-		setReadPages((oldArray) => {
-			const newArray = [...oldArray]
-			newArray[page] = true
-			return newArray
+		if (books[index].readPages[page]) {
+			return
+		}
+		setBooks((oldBooks) => {
+			const newBooks = [...oldBooks]
+			newBooks[index].readPages[page] = true
+			newBooks[index].lastReadPage = page
+			return newBooks
 		})
 	}
 
@@ -113,28 +116,24 @@ export function Reader({ fileBinary, openNextInQue }: ReaderProps) {
 
 	return (
 		<div class="container">
-			{isLoading ? (
-				<div className="loader" />
-			) : (
-				<>
-					<HeatMap
-						documentViewer={documentViewer}
-						readPages={readPages}
-						pages={pagesNumber}
-					/>
-					<div id="reader">
-						<div>{pagesNumber}</div>
-						<div ref={pages} id="pages" />
-						<div ref={placeholder} id="placeholder">
-							<div>Loading WASM, please wait...</div>
-						</div>
+			<>
+				<p>{error.value}</p>
+				{isLoading ? (
+					<></>
+				) : (
+					<HeatMap documentViewer={documentViewer} />
+				)}
+				<div id="reader">
+					<div id="pages" />
+					<div ref={placeholder} id="placeholder">
+						<div>Loading WASM, please wait...</div>
 					</div>
-					<div className="notes">
-						<button onClick={() => nextBook()}>Next in que</button>
-					</div>
-					<ContextMenu position={mousePosition} content={selection} />
-				</>
-			)}
+				</div>
+				<div className="notes">
+					<button onClick={() => nextBook()}>Next in que</button>
+				</div>
+				<ContextMenu position={mousePosition} content={selection} />
+			</>
 		</div>
 	)
 }
@@ -191,3 +190,16 @@ export function Reader({ fileBinary, openNextInQue }: ReaderProps) {
 // 		}
 // 	})
 // }
+
+export class PageObserver extends IntersectionObserver {
+	observeAllPages = function () {
+		this.observingAll = true
+		const targets = document.querySelectorAll(".page")
+		targets.forEach((target) => this.observe(target))
+	}
+
+	stopObserving = function () {
+		this.disconnect()
+		this.observingAll = false
+	}
+}

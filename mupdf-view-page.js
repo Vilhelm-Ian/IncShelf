@@ -825,9 +825,9 @@ export class MupdfDocumentViewer {
 			history.replaceState(null, null, window.location.pathname)
 			this.clear()
 
-			let loadingText = document.createElement("div")
-			loadingText.textContent = "Loading document..."
-			this.placeholderDiv.replaceChildren(loadingText)
+			// let loadingText = document.createElement("div")
+			// loadingText.textContent = "Loading document..."
+			// this.placeholderDiv.replaceChildren(loadingText)
 
 			await this.mupdfWorker.openDocumentFromBuffer(
 				await file.arrayBuffer(),

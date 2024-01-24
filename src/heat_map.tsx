@@ -1,43 +1,66 @@
+import { useEffect, useContext } from "preact/hooks"
+import { signal } from "@preact/signals"
 import "./app.css"
-import { observer } from "./reader.tsx"
+import { observer, pages, PageObserver } from "./reader.tsx"
+import { DB } from "./app.tsx"
+import { MupdfDocumentViewer } from "../mupdf-view-page.js"
 
 type HeatMapProps = {
-	pages: number
-	readPages: boolean[]
-	documentViewer: any
+	documentViewer: MupdfDocumentViewer
 }
+const currentPage = signal(0)
 
-export function HeatMap({ pages, readPages, documentViewer }: HeatMapProps) {
+export function HeatMap({ documentViewer }: HeatMapProps) {
+	const [books, setBooks, index] = useContext(DB)
+
+	useEffect(() => {
+		const currentPageObserver = new PageObserver(getCurrentPage, {
+			threshold: 0.5,
+		})
+		currentPageObserver.observeAllPages()
+		return () => {
+			currentPageObserver.stopObserving()
+		}
+	}, [])
+
 	function gotoPage(index: number) {
 		observer.value.stopObserving()
 		documentViewer.documentHandler.goToPage(index)
+		currentPage.value = index
 		observer.value.observeAllPages()
 	}
 
 	function renderHeatMap() {
 		let currentPage = 0
-		return new Array(pages + Math.floor(pages / 25))
-			.fill(0)
-			.map((_, index) => {
-				if (index % 25 !== 0) {
-					currentPage += 1
-				}
-				const pageValue = currentPage
-				return index % 26 === 0 ? (
-					<span key={`page${index}`}>
-						{`${currentPage}-${Number(currentPage + 25)}`}
-					</span>
-				) : (
-					<div
-						className={`${readPages[index] ? "read-page " : ""}tooltip`}
-						onClick={() => gotoPage(pageValue)}
-						key={`page${index}`}
-					>
-						{currentPage}
-						<span className="tooltiptext">{currentPage}</span>
-					</div>
-				)
+		if (books[index].readPages.length === 0) {
+			setBooks((oldBooks) => {
+				const newBooks = [...oldBooks]
+				newBooks[index].readPages = new Array(
+					pages.value + Math.floor(pages.value / 25)
+				).fill(false)
+				return newBooks
 			})
+		}
+		return books[index].readPages.map((isRead, index) => {
+			if (index % 26 !== 0) {
+				currentPage += 1
+			}
+			const pageValue = currentPage
+			return index % 26 === 0 ? (
+				<span key={`page${index}`}>
+					{`${currentPage}-${Number(currentPage + 25)}`}
+				</span>
+			) : (
+				<div
+					className={`${isRead ? "read-page " : ""}tooltip`}
+					onClick={() => gotoPage(pageValue)}
+					key={`page${index}`}
+				>
+					{currentPage}
+					<span className="tooltiptext">{currentPage + 1}</span>
+				</div>
+			)
+		})
 	}
 
 	function toggleObserving() {
@@ -48,13 +71,41 @@ export function HeatMap({ pages, readPages, documentViewer }: HeatMapProps) {
 		}
 	}
 
+	function togglePageAsRead() {
+		// TODO
+	}
+
 	return (
-		<>
+		<div className="name-later">
 			<div className="reading-options">
 				<button onClick={toggleObserving}>Toggle auto mark</button>
-				<button />
+				<button onClick={togglePageAsRead}>Toggle page as read</button>
+				<p>Current Page</p>
+				<input value={currentPage.value} type="number" />
+				<div class="heat-map">{renderHeatMap()}</div>
 			</div>
-			<div className="heat-map">{renderHeatMap()}</div>
-		</>
+		</div>
 	)
+}
+
+function getCurrentPage(entries: IntersectionObserverEntry[]) {
+	const mostDisplayedPage = findPageMostDisplayed(entries)
+	const mostDisplayedPageNumber = Number(
+		entries[mostDisplayedPage].target.querySelector("a").id.match(/\d+/)[0]
+	)
+	currentPage.value = mostDisplayedPageNumber
+}
+
+function findPageMostDisplayed(pages: IntersectionObserverEntry[]) {
+	let result = {
+		index: 0,
+		value: 0,
+	}
+	pages.forEach(({ intersectionRatio }, index) => {
+		result =
+			intersectionRatio > result.value
+				? { index, value: intersectionRatio }
+				: result
+	})
+	return result.index
 }

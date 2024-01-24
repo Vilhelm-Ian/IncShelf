@@ -33,17 +33,18 @@ export function newBook(name: string, filePath: string): Book {
 	}
 }
 
-export const DB = createContext<[Book[], StateUpdater<Book[]>] | undefined>(
-	undefined
-)
+export const DB = createContext<
+	[Book[], StateUpdater<Book[]>, number, StateUpdater<number>] | undefined
+>(undefined)
 export function App() {
 	const [fileBinary, setFileBinary] = useState<undefined | Uint8Array>(
 		undefined
 	)
 	const [books, setBooks] = useState<Book[]>([])
+	const [index, setIndex] = useState(null)
 	const error = signal("")
 
-	async function openFile(filePath: string, fileName: string) {
+	async function openFile(filePath: string) {
 		try {
 			// let data = await invoke('openFile_binary', { path: filePath })
 			// Opening the file is slow in development because of serde
@@ -58,8 +59,10 @@ export function App() {
 	async function openNextInQue() {
 		const newBooks = [...books]
 		newBooks.sort((a, b) => a.priority - b.priority)
-		const nextBook = newBooks[Math.floor(Math.random() * 3)]
-		await openFile(nextBook.filePath, nextBook.name)
+		const index = Math.floor(Math.random() * 3)
+		const nextBook = newBooks[index]
+		setIndex(index)
+		await openFile(nextBook.filePath)
 	}
 
 	// Syncs to local storage
@@ -78,20 +81,13 @@ export function App() {
 	}, [])
 
 	return (
-		<DB.Provider value={[books, setBooks]}>
+		<DB.Provider value={[books, setBooks, index, setIndex]}>
 			<div className="container">
 				<p>{error.value}</p>
-				{fileBinary === undefined ? (
-					<FileList
-						openNextInQue={openNextInQue}
-						openFile={openFile}
-					/>
+				{index === null ? (
+					<FileList openNextInQue={openNextInQue} />
 				) : (
-					<Reader
-						openNextInQue={openNextInQue}
-						key={fileBinary}
-						fileBinary={fileBinary}
-					/>
+					<Reader openNextInQue={openNextInQue} key={index} />
 				)}
 			</div>
 		</DB.Provider>

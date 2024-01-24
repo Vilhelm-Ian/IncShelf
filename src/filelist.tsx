@@ -1,4 +1,4 @@
-import { useState, useContext } from "preact/hooks"
+import { useState, useContext, useEffect } from "preact/hooks"
 import { AddDocumentDialog } from "./add_document.tsx"
 import { DB, Book } from "./app.tsx"
 import { signal } from "@preact/signals"
@@ -7,23 +7,28 @@ export const isDocumentDialogOpen = signal(false)
 
 type FileListProps = {
 	openNextInQue: () => Promise<any>
-	openFile: (path: string, name: string) => Promise<any>
 }
 
-export function FileList({ openNextInQue, openFile }: FileListProps) {
-	const [isOpening, setIsOpening] = useState(false)
-	// TODO use react context provider to sync que
-	const books = useContext(DB)[0]
+export function FileList({ openNextInQue }: FileListProps) {
+	const [books, setBooks, index, setIndex] = useContext(DB)
 
 	async function openNext(callback: () => Promise<any>) {
-		setIsOpening(true)
+		// setIsOpening(true)
 		await callback() // props.openNext_in_que()
-		setIsOpening(false)
+		// setIsOpening(false)
+	}
+
+	function removeBook(index: number) {
+		setBooks((oldBooks) => {
+			const newBooks = [...oldBooks]
+			newBooks.splice(index, 1)
+			return newBooks
+		})
 	}
 
 	return (
 		<div>
-			{isOpening ? (
+			{index !== null ? (
 				<div className="loader" />
 			) : (
 				<div>
@@ -49,16 +54,7 @@ export function FileList({ openNextInQue, openFile }: FileListProps) {
 							<tr key={`row${index}`}>
 								<th>
 									<input type="checkbox" />
-									<span
-										onClick={() =>
-											openNext(() =>
-												openFile(
-													file.filePath,
-													file.name
-												)
-											)
-										}
-									>
+									<span onClick={() => setIndex(index)}>
 										{file.name}
 									</span>
 								</th>
@@ -71,6 +67,11 @@ export function FileList({ openNextInQue, openFile }: FileListProps) {
 									/>
 								</th>
 								<th>{file.tags}</th>
+								<th>
+									<button onClick={() => removeBook(index)}>
+										remove
+									</button>
+								</th>
 							</tr>
 						))}
 					</table>
