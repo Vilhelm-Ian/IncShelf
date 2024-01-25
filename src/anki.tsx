@@ -9,15 +9,17 @@ type AnkiProps = {
 	content: string
 	isOpen: boolean
 	setIsAnkiOpen: StateUpdater<boolean>
+	source: string
 }
 
-export function Anki({ content, isOpen, setIsAnkiOpen }: AnkiProps) {
+const fields = new Map()
+
+export function Anki({ content, isOpen, setIsAnkiOpen, source }: AnkiProps) {
 	const [decks, setDecks] = useState([])
 	const [currentDeck, setCurrentDeck] = useState("")
 	const [currentModel, setCurrentModel] = useState("")
 	const [fieldNames, setFieldNames] = useState<string[]>([])
 	const [modelTypes, setModelTypes] = useState<string[]>([])
-	const [fields, setFields] = useState(new Map())
 	const dialog = createRef()
 	const error = useSignal("")
 
@@ -40,7 +42,7 @@ export function Anki({ content, isOpen, setIsAnkiOpen }: AnkiProps) {
 					modelName: modelTypesResult[0],
 				})
 				setFieldNames(fieldNames)
-				setFields(fields.set(fieldNames[0], content))
+				fields.set(fieldNames[0], content)
 			} catch (err) {
 				error.value = `failed to connect with anki ${err}`
 			}
@@ -91,7 +93,7 @@ export function Anki({ content, isOpen, setIsAnkiOpen }: AnkiProps) {
 		if (!(e.currentTarget instanceof HTMLSpanElement)) {
 			return
 		}
-		setFields(fields.set(field, e.currentTarget.innerText))
+		fields.set(field, e.currentTarget.innerText)
 	}
 
 	function setCurreentDeck(e: ChangeEvent) {
@@ -124,16 +126,28 @@ export function Anki({ content, isOpen, setIsAnkiOpen }: AnkiProps) {
 				))}
 			</select>
 			{fieldNames.map((field, index) => {
+				let fieldContent = fields.get(field)
+				if (index === 0 && fieldContent === undefined) {
+					fieldContent = content
+					fields.set(field, fieldContent)
+				}
+				if (
+					(field === "Source" || field === "Sources") &&
+					fieldContent === undefined
+				) {
+					fieldContent = `<a href="${source}">${source}</a>`
+					fields.set(field, fieldContent)
+				}
 				return (
 					<div class="anki-field" key={`field${index}`}>
 						<label>{field}</label>
 						<span
-							name="field"
+							name={field}
 							onInput={(e) => updateFields(e, field)}
 							contentEditable
 							role="textbox"
 						>
-							{fields.get(field)}
+							{fieldContent}
 						</span>
 					</div>
 				)
@@ -146,14 +160,17 @@ export function Anki({ content, isOpen, setIsAnkiOpen }: AnkiProps) {
 function cloze() {
 	const selection = document.getSelection()
 	const parent = selection.anchorNode.parentElement
-	if (parent.attributes.name.value !== "field") {
+	const field = parent.attributes.name.value
+	if (field === undefined) {
 		return
 	}
 	let text = selection.getRangeAt(0).extractContents().textContent
 	text = `{{c1::${text}}}`
 	const offset = selection.anchorOffset
-	parent.innerHTML =
+	const content =
 		parent.innerHTML.slice(0, offset) +
 		text +
 		parent.innerHTML.slice(offset)
+	fields.set(field, content)
+	parent.innerHTML = content
 }

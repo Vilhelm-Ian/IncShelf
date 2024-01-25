@@ -13,9 +13,10 @@ import { readBinaryFile, exists } from "@tauri-apps/api/fs"
 export const observer = signal(undefined)
 export const pages = signal(0)
 const error = signal("")
+export const currentPage = signal(0)
 
 type ReaderProps = {
-	openNextInQue: () => void
+	openNextInQue: (que: number[]) => void
 	setQue: StateUpdater<number[]>
 }
 
