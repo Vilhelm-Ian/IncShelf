@@ -90,22 +90,49 @@ export function AddDocumentDialog() {
 		file.value.priority.value = Number(value)
 	}
 	// TODO WANT TO IN THE FUTURE TO USE SQL
+	// 	export function newBook(name: string, filePath: string): Book {
+	// 	return {
+	// 		name,
+	// 		filePath,
+	// 		priority: NaN,
+	// 		readPages: [],
+	// 		inQue: true,
+	// 		lastReadPage: 0,
+	// 		tags: [],
+	// 		dueDate: new Date(),
+	// 		interval: 0,
+	// 		numberOfReadPages: 0,
+	// 		timesRead: 0
+	// 	}
+	// }
+
 	async function addToDb() {
 		setBooks((oldBooks) => {
-			const newBooks = [...oldBooks]
-			newBooks.push({
-				name: file.value.file_name.value,
-				filePath: file.value.file_path.value,
-				priority: file.value.priority.value,
-				tags,
-				dueDate: new Date(),
-				interval: 0,
-				inQue: true,
-				lastReadPage: 0,
-				readPages: [],
-				numberOfReadPages: 0,
-				timesRead: 0,
+			let newBooks = [...oldBooks]
+			const book = newBook(
+				file.value.file_name.value,
+				file.value.file_path.value,
+				file.value.priority.value
+			)
+			book.tags = tags
+			newBooks.splice(file.value.priority.value, 0)
+			newBooks = newBooks.map((book, index) => {
+				book.priority = index
+				return book
 			})
+			// newBooks.push({
+			// 	name: file.value.file_name.value,
+			// 	filePath: file.value.file_path.value,
+			// 	priority: file.value.priority.value,
+			// 	tags,
+			// 	dueDate: new Date(),
+			// 	interval: 0,
+			// 	inQue: true,
+			// 	lastReadPage: 0,
+			// 	readPages: [],
+			// 	numberOfReadPages: 0,
+			// 	timesRead: 0
+			// })
 			return newBooks
 		})
 		isOpen.value = false
