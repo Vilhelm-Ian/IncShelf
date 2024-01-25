@@ -67,6 +67,7 @@ th {
 }
 
 input {
+	background: white;
 	color: black;
 }
 
@@ -88,7 +89,7 @@ input {
 	grid-template-columns: 10ch repeat(25, 1fr);
 	grid-auto-rows: 2ch;
 	padding-right: 1rem;
-	overflow: hidden, auto;
+	overflow: hidden auto;
 	align-content: baseline;
 	align-items: center;
 	text-align: right;
