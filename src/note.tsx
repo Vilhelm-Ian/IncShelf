@@ -10,6 +10,7 @@ import "../node_modules/easymde/dist/easymde.min.css"
 
 type NoteProps = {
 	content: string
+	source: string | undefined
 	isOpen: boolean
 	setIsEditorOpen: StateUpdater<boolean>
 }
@@ -18,7 +19,7 @@ const name = signal(`${Date.now()}.md`)
 const path = signal<undefined | string>(undefined)
 const error = signal("")
 
-export function Note({ content, isOpen, setIsEditorOpen }: NoteProps) {
+export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
 	const editor = createRef()
 	const dialog = createRef()
 	const [easyMDE, setEasyMDE] = useState(undefined)
@@ -39,10 +40,14 @@ export function Note({ content, isOpen, setIsEditorOpen }: NoteProps) {
 				element: editor.current,
 				sideBySideFullscreen: false,
 			})
-			newEditor.value(content)
+			let editorContent = content
+			if (source !== undefined) {
+				editorContent = `[Source](<${source}>) ${editorContent}`
+			}
+			newEditor.value(editorContent)
 			return newEditor
 		})
-	}, [content, dialog, easyMDE, editor])
+	}, [content, dialog, easyMDE, editor, source])
 
 	useEffect(() => {
 		if (dialog.current === null) {

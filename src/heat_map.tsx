@@ -1,14 +1,12 @@
 import { useEffect, useContext } from "preact/hooks"
-import { signal } from "@preact/signals"
 import "./app.css"
-import { observer, pages, PageObserver } from "./reader.tsx"
+import { observer, pages, PageObserver, currentPage } from "./reader.tsx"
 import { DB } from "./app.tsx"
 import { MupdfDocumentViewer } from "../mupdf-view-page.js"
 
 type HeatMapProps = {
 	documentViewer: MupdfDocumentViewer
 }
-const currentPage = signal(0)
 
 export function HeatMap({ documentViewer }: HeatMapProps) {
 	const [books, setBooks, index, setIndex] = useContext(DB)

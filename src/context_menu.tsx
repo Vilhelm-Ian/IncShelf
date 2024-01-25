@@ -1,9 +1,11 @@
 import "./app.css"
-import { useEffect, useState } from "preact/hooks"
+import { useContext, useEffect, useState } from "preact/hooks"
 import { createRef } from "preact"
 import { Position } from "./utils/get_position.ts"
 import { Anki } from "./anki.tsx"
 import { Note } from "./note.tsx"
+import { DB } from "./app.tsx"
+import { currentPage } from "./reader.tsx"
 
 type ContextMenuProps = {
 	position: Position
@@ -11,6 +13,7 @@ type ContextMenuProps = {
 }
 
 export function ContextMenu({ position, content }: ContextMenuProps) {
+	const [books, _, index] = useContext(DB)
 	const [isAnkiOpen, setIsAnkiOpen] = useState(false)
 	const [isEditorOpen, setIsEditorOpen] = useState(false)
 	const contextMenu = createRef()
@@ -48,6 +51,7 @@ export function ContextMenu({ position, content }: ContextMenuProps) {
 			</ul>
 			{isAnkiOpen ? (
 				<Anki
+					source={`${books[index].filePath}#page=${currentPage.value}`}
 					content={content}
 					isOpen={isAnkiOpen}
 					setIsAnkiOpen={setIsAnkiOpen}
@@ -57,6 +61,7 @@ export function ContextMenu({ position, content }: ContextMenuProps) {
 			)}
 			{isEditorOpen ? (
 				<Note
+					source={`${books[index].filePath}#page=${currentPage.value}`}
 					content={content}
 					isOpen={isEditorOpen}
 					setIsEditorOpen={setIsEditorOpen}
