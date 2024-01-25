@@ -45,6 +45,7 @@ export function ContextMenu({ position, content }: ContextMenuProps) {
 			>
 				<li onClick={() => setIsEditorOpen(true)}>Add Note</li>
 				<li onClick={() => setIsAnkiOpen(true)}>Create Anki Card</li>
+				<li>Append to already existing note(not yet implemented)</li>
 				<li>X-Ray(not yet implemented)</li>
 				<li>Definition(not yet implemented)</li>
 				<li>Translate(not yet implemented)</li>
