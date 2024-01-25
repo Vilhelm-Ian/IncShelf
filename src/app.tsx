@@ -19,11 +19,15 @@ export type Book = {
 	timesRead: number
 }
 
-export function newBook(name: string, filePath: string): Book {
+export function newBook(
+	name: string,
+	filePath: string,
+	priority: number
+): Book {
 	return {
 		name,
 		filePath,
-		priority: NaN,
+		priority,
 		readPages: [],
 		inQue: true,
 		lastReadPage: 0,
