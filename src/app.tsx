@@ -53,12 +53,8 @@ export function App() {
 	const [index, setIndex] = useState(null)
 	const error = signal("")
 
-	async function openNextInQue() {
-		const newBooks = [...books]
-		newBooks.sort((a, b) => a.priority - b.priority)
-		const index = Math.floor(Math.random() * 3)
-		const nextBook = newBooks[index]
-		await setIndex(index)
+	function openNextInQue(newQue = que) {
+		setIndex(newQue[0])
 	}
 
 	// Syncs to local storage
@@ -80,12 +76,16 @@ export function App() {
 			setBooks(books)
 		}
 		if (que !== null) {
-			setQue(que)
+			setQue(() =>
+				Array(books.length - 1)
+					.fill(0)
+					.map((_, index) => index)
+			)
 		}
-		buildQue()
+		sortBooks()
 	}, [])
 
-	function buildQue() {
+	function sortBooks() {
 		setBooks((oldBooks) => {
 			const newBooks = [...oldBooks]
 			const minMaxValue = getMinMaxValues(newBooks)
@@ -174,7 +174,11 @@ export function App() {
 				{index === null ? (
 					<FileList openNextInQue={openNextInQue} />
 				) : (
-					<Reader openNextInQue={openNextInQue} key={index} />
+					<Reader
+						setQue={setQue}
+						openNextInQue={openNextInQue}
+						key={index}
+					/>
 				)}
 			</div>
 		</DB.Provider>
