@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "preact/hooks"
+import { useState, useEffect, useContext, StateUpdater } from "preact/hooks"
 import { signal } from "@preact/signals"
 import { createRef } from "preact"
 import "./app.css"
@@ -15,10 +15,11 @@ export const pages = signal(0)
 const error = signal("")
 
 type ReaderProps = {
-	openNextInQue: () => Promise<any>
+	openNextInQue: () => void
+	setQue: StateUpdater<number[]>
 }
 
-export function Reader({ openNextInQue }: ReaderProps) {
+export function Reader({ openNextInQue, setQue }: ReaderProps) {
 	const [mousePosition, setMousePosition] = useState(undefined)
 	const [isLoading, setLoading] = useState(true)
 	const [documentViewer, setDocumentViewer] = useState(undefined)
@@ -111,7 +112,18 @@ export function Reader({ openNextInQue }: ReaderProps) {
 
 	async function nextBook() {
 		setLoading(true)
-		await openNextInQue()
+		setBooks((oldBooks) => {
+			const newBooks = [...oldBooks]
+			newBooks[index].timesRead += 1
+			return books
+		})
+		setQue((oldQue) => {
+			const newQue = [...oldQue]
+			const indexInQue = newQue.indexOf(index)
+			newQue.splice(indexInQue, 1)
+			openNextInQue(newQue)
+			return newQue
+		})
 		setLoading(false)
 	}
 
