@@ -72,7 +72,15 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 	}
 
 	function togglePageAsRead() {
-		// TODO
+		setBooks((oldBooks) => {
+			const newBooks = [...oldBooks]
+			newBooks[index].readPages[currentPage.value] =
+				!newBooks[index].readPages[currentPage.value]
+			if (newBooks[index].readPages[currentPage.value]) {
+				newBooks[index].lastReadPage = currentPage.value
+			}
+			return newBooks
+		})
 	}
 
 	return (
