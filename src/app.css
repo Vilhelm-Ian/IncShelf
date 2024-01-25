@@ -82,7 +82,7 @@ input {
 }
 
 .heat-map {
-	height: 100vh;
+	height: 50%;
 	display: grid;
 	gap: 0.3rem;
 	grid-template-columns: 10ch repeat(25, 1fr);

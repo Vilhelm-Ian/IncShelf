@@ -104,6 +104,7 @@ export function AddDocumentDialog() {
 				lastReadPage: 0,
 				readPages: [],
 				numberOfReadPages: 0,
+				timesRead: 0,
 			})
 			return newBooks
 		})
