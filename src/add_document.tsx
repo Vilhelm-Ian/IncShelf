@@ -187,22 +187,23 @@ export function AddDocumentDialog() {
 				Close
 			</button>
 			<button onClick={addFilePath}>File</button>
-			<p>file path: {file.value.file_path.value}</p>
-			<input onInput={updatePath} value={file.value.file_path.value} />
-			<label>Tags</label>
-			<input onInput={(e) => addTags(e)} />
-			<label>Priority</label>
 			<button
-				style={`display: ${error.value !== "" ? "none" : "visible"}`}
+				style={`display: ${file.value.file_path.value === "" ? "none" : "visible"}`}
 				onClick={addToDb}
 			>
 				Add
 			</button>
+			<p>file path: {file.value.file_path.value}</p>
+			<input onInput={updatePath} value={file.value.file_path.value} />
+			<label>Tags</label>
+			<input onInput={(e) => addTags(e)} />
+			<br />
 			<div style="display: flex; flex-direction: cloumn;">
 				<ol className="priority_list">{que}</ol>
 				<div>
 					{!Number.isNaN(file.value.priority.value) ? (
-						<div>
+						<div class="priority-controls">
+							<label>Priority</label>
 							<input
 								onInput={updatePriority}
 								value={file.value.priority.value}

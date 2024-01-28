@@ -185,3 +185,8 @@ input {
 	display: flex;
 	flex-direction: column;
 }
+
+
+.priority-controls {
+	margin: 10px;
+}
