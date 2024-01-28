@@ -72,4 +72,5 @@
 - [ ] Detect if the user has anki installed. if not don't render anki related UI
 - [ ] Make it so if a user has an optional field in his anki card priority. To auto insert the priority of the book he is reading.And the. To write an addon that will sort new cards based on the priority
 - [ ] Migrate DB from local storage to SQL
+- [ ] RSVP option
 
