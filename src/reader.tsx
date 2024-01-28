@@ -89,28 +89,32 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 	}
 
 	function markPageAsRead(entries: IntersectionObserverEntry[]) {
-		if (entries[0].isIntersecting || entries[0].boundingClientRect.y > 0) {
-			return
-		}
 		// Basically if a user goes to a page we disconnect the observer from observing
 		// And start observing after jumping a page
 		// An issue with this approach is that all pages we be counted as entries
 		// So if a user jumps from page 5 to page 10 and the book has 200 pages and
 		// it will have 200 entries after observing again
-		if (entries.length > 3) {
+		if (entries.length === pages.value) {
 			return
 		}
-		const page = Number(
-			entries[0].target.querySelector("a").id.match(/\d+/)[0]
-		)
-		if (books[index].readPages[page]) {
-			return
-		}
+		const pagesScrolled = entries
+			.filter(
+				(entry) =>
+					!entry.isIntersecting && entry.boundingClientRect.y < 0
+			)
+			.map((entry) =>
+				Number(entry.target.querySelector("a").id.match(/\d+/)[0])
+			)
 		setBooks((oldBooks) => {
 			const newBooks = [...oldBooks]
-			newBooks[index].readPages[page] = true
-			newBooks[index].lastReadPage = page
-			newBooks[index].numberOfReadPages += 1
+			const newlyReadPages = pagesScrolled.filter(
+				(page) => !newBooks[index].readPages[page]
+			)
+			pagesScrolled.forEach((page) => {
+				newBooks[index].readPages[page] = true
+			})
+			newBooks[index].lastReadPage = Math.max(...newlyReadPages)
+			newBooks[index].numberOfReadPages += pagesScrolled.length
 			return newBooks
 		})
 	}
