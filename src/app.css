@@ -181,12 +181,6 @@ input {
 	position: absolute;
 }
 
-.name-later {
-	display: flex;
-	flex-direction: column;
-}
-
-
 .priority-controls {
 	margin: 10px;
 }
