@@ -24,16 +24,11 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 	const [mousePosition, setMousePosition] = useState(undefined)
 	const [isLoading, setLoading] = useState(true)
 	const [documentViewer, setDocumentViewer] = useState(undefined)
-
-	observer.value =
-		observer.value === undefined
-			? new PageObserver(markPageAsRead)
-			: observer.value
-
 	const placeholder = createRef()
 	const [selection, setSelection] = useState(undefined)
 
 	useEffect(() => {
+		observer.value = new PageObserver(markPageAsRead)
 		;(async () => {
 			try {
 				if (!(await exists(books.value[queIndex.value].filePath))) {
@@ -64,6 +59,9 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 				}
 			}
 		})()
+		return () => {
+			observer.value.stopObserving()
+		}
 	}, [])
 
 	useEffect(() => {
