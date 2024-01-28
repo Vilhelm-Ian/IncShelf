@@ -48,6 +48,7 @@ export const DB = createContext<
 >(undefined)
 
 export function App() {
+	const [isDomRendered, setIsDomRendered] = useState(false)
 	const [que, setQue] = useState([])
 	const [books, setBooks] = useState<Book[]>([])
 	const [index, setIndex] = useState(null)
@@ -59,15 +60,22 @@ export function App() {
 
 	// Syncs to local storage
 	useEffect(() => {
-		if (books.length === 0) {
+		if (!isDomRendered) {
 			return
 		}
 		localStorage.setItem("books", JSON.stringify(books))
 	}, [books])
 
 	useEffect(() => {
+		if (que.length === 0 && books.length !== 0) {
+			setQue(() =>
+				Array(books.length)
+					.fill(0)
+					.map((_, index) => index)
+			)
+		}
 		localStorage.setItem("que", JSON.stringify(que))
-	}, [que])
+	}, [que, books])
 
 	useEffect(() => {
 		const books = JSON.parse(localStorage.getItem("books"))
@@ -76,13 +84,10 @@ export function App() {
 			setBooks(books)
 		}
 		if (que !== null) {
-			setQue(() =>
-				Array(books.length - 1)
-					.fill(0)
-					.map((_, index) => index)
-			)
+			setQue(que)
 		}
 		sortBooks()
+		setIsDomRendered(true)
 	}, [])
 
 	function sortBooks() {
@@ -99,6 +104,7 @@ export function App() {
 	}
 
 	function getBookScore(book: Book, minMaxValues: number[]) {
+		// eslint-disable-next-line
 		const [
 			minPriority,
 			maxPriority,

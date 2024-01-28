@@ -99,7 +99,7 @@ export function AddDocumentDialog() {
 				file.value.priority.value
 			)
 			book.tags = tags
-			newBooks.splice(file.value.priority.value, 0)
+			newBooks.splice(file.value.priority.value, 0, book)
 			newBooks = newBooks.map((book, index) => {
 				book.priority = index
 				return book

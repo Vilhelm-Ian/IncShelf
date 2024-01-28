@@ -56,7 +56,11 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 				setDocumentViewer(newDocumentViewer)
 				setLoading(false)
 			} catch (err) {
-				error.value = err
+				if (err.message !== undefined) {
+					error.value = err.message
+				} else {
+					error.value = err
+				}
 			}
 		})()
 	}, [])

@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "preact/hooks"
+import { useContext } from "preact/hooks"
 import { AddDocumentDialog } from "./add_document.tsx"
 import { DB, Book } from "./app.tsx"
 import { signal } from "@preact/signals"
@@ -6,17 +6,11 @@ import { signal } from "@preact/signals"
 export const isDocumentDialogOpen = signal(false)
 
 type FileListProps = {
-	openNextInQue: () => Promise<any>
+	openNextInQue: () => void
 }
 
 export function FileList({ openNextInQue }: FileListProps) {
-	const [books, setBooks, index, setIndex] = useContext(DB)
-
-	async function openNext(callback: () => Promise<any>) {
-		// setIsOpening(true)
-		await callback() // props.openNext_in_que()
-		// setIsOpening(false)
-	}
+	const [books, setBooks, _, setIndex] = useContext(DB)
 
 	function removeBook(index: number) {
 		setBooks((oldBooks) => {
@@ -28,59 +22,58 @@ export function FileList({ openNextInQue }: FileListProps) {
 
 	return (
 		<div>
-			{index !== null ? (
-				<div className="loader" />
-			) : (
-				<div>
-					<button onClick={() => openNext(openNextInQue)}>
-						Next in que
-					</button>
-					<button
-						onClick={() => {
-							isDocumentDialogOpen.value = true
-						}}
-					>
-						Add
-					</button>
-					<p>Files</p>
-					<table>
-						<tr>
-							<th>Title</th>
-							<th>Added</th>
-							<th>Progress</th>
-							<th>Tags</th>
+			<div>
+				<button
+					style={books.length === 0 ? "display:none;" : ""}
+					onClick={() => openNextInQue()}
+				>
+					Next in que
+				</button>
+				<button
+					onClick={() => {
+						isDocumentDialogOpen.value = true
+					}}
+				>
+					Add
+				</button>
+				<p>Files</p>
+				<table>
+					<tr>
+						<th>Title</th>
+						<th>Added</th>
+						<th>Progress</th>
+						<th>Tags</th>
+					</tr>
+					{books.map((file: Book, index: number) => (
+						<tr key={`row${index}`}>
+							<th>
+								<input type="checkbox" />
+								<span onClick={() => setIndex(index)}>
+									{file.name}
+								</span>
+							</th>
+							<th>1 day</th>
+							<th>
+								<progress
+									max="100"
+									value={
+										(file.numberOfReadPages /
+											file.readPages.length) *
+										100
+									}
+								/>
+							</th>
+							<th>{file.tags}</th>
+							<th>
+								<button onClick={() => removeBook(index)}>
+									remove
+								</button>
+							</th>
 						</tr>
-						{books.map((file: Book, index: number) => (
-							<tr key={`row${index}`}>
-								<th>
-									<input type="checkbox" />
-									<span onClick={() => setIndex(index)}>
-										{file.name}
-									</span>
-								</th>
-								<th>1 day</th>
-								<th>
-									<progress
-										max="100"
-										value={
-											(file.numberOfReadPages /
-												file.readPages.length) *
-											100
-										}
-									/>
-								</th>
-								<th>{file.tags}</th>
-								<th>
-									<button onClick={() => removeBook(index)}>
-										remove
-									</button>
-								</th>
-							</tr>
-						))}
-					</table>
-					<AddDocumentDialog />
-				</div>
-			)}
+					))}
+				</table>
+				<AddDocumentDialog />
+			</div>
 		</div>
 	)
 }
