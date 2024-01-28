@@ -7,7 +7,7 @@ import { ContextMenu } from "./context_menu.tsx"
 import { getPosition } from "./utils/get_position.ts"
 import { MupdfDocumentViewer } from "../mupdf-view-page.js"
 import { mupdfView } from "../mupdf-view.js"
-import { DB } from "./app.tsx"
+import { books, queIndex } from "./app.tsx"
 import { readBinaryFile, exists } from "@tauri-apps/api/fs"
 
 export const observer = signal(undefined)
@@ -24,7 +24,6 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 	const [mousePosition, setMousePosition] = useState(undefined)
 	const [isLoading, setLoading] = useState(true)
 	const [documentViewer, setDocumentViewer] = useState(undefined)
-	const [books, setBooks, index] = useContext(DB)
 
 	observer.value =
 		observer.value === undefined
@@ -37,12 +36,14 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 	useEffect(() => {
 		;(async () => {
 			try {
-				if (!(await exists(books[index].filePath))) {
+				if (!(await exists(books.value[queIndex.value].filePath))) {
 					throw new Error("file dosen't exist")
 				}
 				const newDocumentViewer = new MupdfDocumentViewer(mupdfView)
 				setDocumentViewer(newDocumentViewer)
-				const data = await readBinaryFile(books[index].filePath)
+				const data = await readBinaryFile(
+					books.value[queIndex.value].filePath
+				)
 				const f = new File([data], "todo", {
 					type: "application/pdf",
 				})
@@ -50,7 +51,7 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 				// eslint-disable-next-line
 				pages.value = newDocumentViewer.documentHandler.pageCount
 				newDocumentViewer.documentHandler.goToPage(
-					books[index].lastReadPage
+					books.value[queIndex.value].lastReadPage
 				)
 				observer.value.observeAllPages()
 				setDocumentViewer(newDocumentViewer)
@@ -105,30 +106,25 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 			.map((entry) =>
 				Number(entry.target.querySelector("a").id.match(/\d+/)[0])
 			)
-		setBooks((oldBooks) => {
-			const newBooks = [...oldBooks]
-			const newlyReadPages = pagesScrolled.filter(
-				(page) => !newBooks[index].readPages[page]
-			)
-			pagesScrolled.forEach((page) => {
-				newBooks[index].readPages[page] = true
-			})
-			newBooks[index].lastReadPage = Math.max(...newlyReadPages)
-			newBooks[index].numberOfReadPages += pagesScrolled.length
-			return newBooks
+		const newBooks = [...books.value]
+		const newlyReadPages = pagesScrolled.filter(
+			(page) => !newBooks[queIndex.value].readPages[page]
+		)
+		pagesScrolled.forEach((page) => {
+			newBooks[queIndex.value].readPages[page] = true
 		})
+		newBooks[queIndex.value].lastReadPage = Math.max(...newlyReadPages)
+		newBooks[queIndex.value].numberOfReadPages += newlyReadPages.length
+		books.value = newBooks
 	}
 
 	async function nextBook() {
-		setLoading(true)
-		setBooks((oldBooks) => {
-			const newBooks = [...oldBooks]
-			newBooks[index].timesRead += 1
-			return books
-		})
+		const newBooks = [...books.value]
+		newBooks[queIndex.value].timesRead += 1
+		books.value = newBooks
 		setQue((oldQue) => {
 			const newQue = [...oldQue]
-			const indexInQue = newQue.indexOf(index)
+			const indexInQue = newQue.indexOf(queIndex.value)
 			newQue.splice(indexInQue, 1)
 			openNextInQue(newQue)
 			return newQue

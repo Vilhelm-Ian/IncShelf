@@ -1,7 +1,7 @@
 import { useEffect, useContext } from "preact/hooks"
 import "./app.css"
 import { observer, pages, PageObserver, currentPage } from "./reader.tsx"
-import { DB } from "./app.tsx"
+import { books, queIndex } from "./app.tsx"
 import { MupdfDocumentViewer } from "../mupdf-view-page.js"
 
 type HeatMapProps = {
@@ -9,8 +9,6 @@ type HeatMapProps = {
 }
 
 export function HeatMap({ documentViewer }: HeatMapProps) {
-	const [books, setBooks, index, setIndex] = useContext(DB)
-
 	useEffect(() => {
 		const currentPageObserver = new PageObserver(getCurrentPage, {
 			threshold: 0.5,
@@ -30,35 +28,35 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 
 	function renderHeatMap() {
 		let currentPage = 0
-		if (books[index].readPages.length === 0) {
-			setBooks((oldBooks) => {
-				const newBooks = [...oldBooks]
-				newBooks[index].readPages = new Array(
-					pages.value + Math.floor(pages.value / 25)
-				).fill(false)
-				return newBooks
-			})
+		if (books.value[queIndex.value].readPages.length === 0) {
+			const newBooks = [...books.value]
+			newBooks[queIndex.value].readPages = new Array(
+				pages.value + Math.floor(pages.value / 25)
+			).fill(false)
+			books.value = newBooks
 		}
-		return books[index].readPages.map((isRead, index) => {
-			if (index % 26 !== 0) {
-				currentPage += 1
+		return books.value[queIndex.value].readPages.map(
+			(isRead: boolean, index: number) => {
+				if (index % 26 !== 0) {
+					currentPage += 1
+				}
+				const pageValue = currentPage
+				return index % 26 === 0 ? (
+					<span key={`page${index}`}>
+						{`${currentPage}-${Number(currentPage + 25)}`}
+					</span>
+				) : (
+					<div
+						className={`${isRead ? "read-page " : ""}tooltip`}
+						onClick={() => gotoPage(pageValue)}
+						key={`page${index}`}
+					>
+						{currentPage}
+						<span className="tooltiptext">{currentPage + 1}</span>
+					</div>
+				)
 			}
-			const pageValue = currentPage
-			return index % 26 === 0 ? (
-				<span key={`page${index}`}>
-					{`${currentPage}-${Number(currentPage + 25)}`}
-				</span>
-			) : (
-				<div
-					className={`${isRead ? "read-page " : ""}tooltip`}
-					onClick={() => gotoPage(pageValue)}
-					key={`page${index}`}
-				>
-					{currentPage}
-					<span className="tooltiptext">{currentPage + 1}</span>
-				</div>
-			)
-		})
+		)
 	}
 
 	function toggleObserving() {
@@ -70,21 +68,26 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 	}
 
 	function togglePageAsRead() {
-		setBooks((oldBooks) => {
-			const newBooks = [...oldBooks]
-			newBooks[index].readPages[currentPage.value] =
-				!newBooks[index].readPages[currentPage.value]
-			if (newBooks[index].readPages[currentPage.value]) {
-				newBooks[index].lastReadPage = currentPage.value
-			}
-			return newBooks
-		})
+		const newBooks = [...books.value]
+		const currentBook = newBooks[queIndex.value]
+		currentBook.readPages[currentPage.value] =
+			!currentBook.readPages[currentPage.value]
+		if (currentBook.readPages[currentPage.value]) {
+			currentBook.lastReadPage = currentPage.value
+		}
+		books.value = newBooks
 	}
 
 	return (
 		<div className="name-later">
 			<div className="reading-options">
-				<button onClick={() => setIndex(null)}>Back</button>
+				<button
+					onClick={() => {
+						queIndex.value = null
+					}}
+				>
+					Back
+				</button>
 				<button onClick={toggleObserving}>Toggle auto mark</button>
 				<button onClick={togglePageAsRead}>Toggle page as read</button>
 				<p>Current Page</p>

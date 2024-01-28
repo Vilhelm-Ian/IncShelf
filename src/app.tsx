@@ -3,7 +3,11 @@ import "./app.css"
 import { FileList } from "./filelist.tsx"
 import { Reader } from "./reader.tsx"
 import { createContext } from "preact"
-import { signal } from "@preact/signals"
+import { signal, useSignalEffect } from "@preact/signals"
+
+export const queIndex = signal(null)
+export const books = signal([])
+let isDomRendered = false
 
 export type Book = {
 	name: string
@@ -48,63 +52,55 @@ export const DB = createContext<
 >(undefined)
 
 export function App() {
-	const [isDomRendered, setIsDomRendered] = useState(false)
 	const [que, setQue] = useState([])
-	const [books, setBooks] = useState<Book[]>([])
-	const [index, setIndex] = useState(null)
 	const error = signal("")
 
+	useEffect(() => {
+		if (isDomRendered) {
+			localStorage.setItem("books", JSON.stringify(books.value))
+		}
+	}, [books.value])
+
 	function openNextInQue(newQue = que) {
-		setIndex(newQue[0])
+		queIndex.value = newQue[0]
 	}
 
-	// Syncs to local storage
 	useEffect(() => {
-		if (!isDomRendered) {
-			return
-		}
-		localStorage.setItem("books", JSON.stringify(books))
-	}, [books])
-
-	useEffect(() => {
-		if (que.length === 0 && books.length !== 0) {
+		if (que.length === 0) {
 			setQue(() =>
-				Array(books.length)
+				Array(books.value.length)
 					.fill(0)
 					.map((_, index) => index)
 			)
 		}
 		localStorage.setItem("que", JSON.stringify(que))
-	}, [que, books])
+	}, [que])
 
 	useEffect(() => {
-		const books = JSON.parse(localStorage.getItem("books"))
+		const savedBooks = JSON.parse(localStorage.getItem("books"))
 		const que = JSON.parse(localStorage.getItem("que"))
-		if (books !== null) {
-			setBooks(books)
+		if (savedBooks !== null) {
+			books.value = savedBooks
 		}
 		if (que !== null) {
 			setQue(que)
 		}
+		isDomRendered = true
 		sortBooks()
-		setIsDomRendered(true)
 	}, [])
 
 	function sortBooks() {
-		setBooks((oldBooks) => {
-			const newBooks = [...oldBooks]
-			const minMaxValue = getMinMaxValues(newBooks)
-			newBooks.sort((a: Book, b: Book) => {
-				const aScore = getBookScore(a, minMaxValue)
-				const bScore = getBookScore(b, minMaxValue)
-				return aScore - bScore
-			})
-			return newBooks
+		const newBooks = [...books.value]
+		const minMaxValue = getMinMaxValues(newBooks)
+		newBooks.sort((a: Book, b: Book) => {
+			const aScore = getBookScore(a, minMaxValue)
+			const bScore = getBookScore(b, minMaxValue)
+			return aScore - bScore
 		})
+		books.value = newBooks
 	}
 
 	function getBookScore(book: Book, minMaxValues: number[]) {
-		// eslint-disable-next-line
 		const [
 			minPriority,
 			maxPriority,
@@ -113,6 +109,7 @@ export function App() {
 			minTimesRead,
 			maxTimesRead,
 		] = minMaxValues
+
 		let priorityScore =
 			normalize(book.priority, minPriority, maxPriority) * priorityWeight
 		let readPagesScore =
@@ -121,6 +118,7 @@ export function App() {
 		let timesReadScore =
 			normalize(book.timesRead, minTimesRead, maxTimesRead) *
 			timesReadWeight
+
 		readPagesScore = Number.isNaN(readPagesScore) ? 0 : readPagesScore
 		priorityScore = Number.isNaN(priorityScore) ? 0 : priorityScore
 		timesReadScore = Number.isNaN(timesReadScore) ? 0 : timesReadScore
@@ -174,19 +172,17 @@ export function App() {
 	}
 
 	return (
-		<DB.Provider value={[books, setBooks, index, setIndex]}>
-			<div className="container">
-				<p>{error.value}</p>
-				{index === null ? (
-					<FileList openNextInQue={openNextInQue} />
-				) : (
-					<Reader
-						setQue={setQue}
-						openNextInQue={openNextInQue}
-						key={index}
-					/>
-				)}
-			</div>
-		</DB.Provider>
+		<div className="container">
+			<p>{error.value}</p>
+			{queIndex.value === null ? (
+				<FileList openNextInQue={openNextInQue} />
+			) : (
+				<Reader
+					setQue={setQue}
+					openNextInQue={openNextInQue}
+					key={queIndex}
+				/>
+			)}
+		</div>
 	)
 }

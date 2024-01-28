@@ -1,6 +1,5 @@
-import { useContext } from "preact/hooks"
 import { AddDocumentDialog } from "./add_document.tsx"
-import { DB, Book } from "./app.tsx"
+import { Book, queIndex, books } from "./app.tsx"
 import { signal } from "@preact/signals"
 
 export const isDocumentDialogOpen = signal(false)
@@ -10,21 +9,17 @@ type FileListProps = {
 }
 
 export function FileList({ openNextInQue }: FileListProps) {
-	const [books, setBooks, _, setIndex] = useContext(DB)
-
 	function removeBook(index: number) {
-		setBooks((oldBooks) => {
-			const newBooks = [...oldBooks]
-			newBooks.splice(index, 1)
-			return newBooks
-		})
+		const newBooks = [...books.value]
+		newBooks.splice(index, 1)
+		books.value = newBooks
 	}
 
 	return (
 		<div>
 			<div>
 				<button
-					style={books.length === 0 ? "display:none;" : ""}
+					style={books.value.length === 0 ? "display:none;" : ""}
 					onClick={() => openNextInQue()}
 				>
 					Next in que
@@ -44,11 +39,15 @@ export function FileList({ openNextInQue }: FileListProps) {
 						<th>Progress</th>
 						<th>Tags</th>
 					</tr>
-					{books.map((file: Book, index: number) => (
+					{books.value.map((file: Book, index: number) => (
 						<tr key={`row${index}`}>
 							<th>
 								<input type="checkbox" />
-								<span onClick={() => setIndex(index)}>
+								<span
+									onClick={() => {
+										queIndex.value = index
+									}}
+								>
 									{file.name}
 								</span>
 							</th>
