@@ -1,4 +1,4 @@
-import { useEffect, useContext } from "preact/hooks"
+import { useEffect } from "preact/hooks"
 import "./app.css"
 import { observer, pages, PageObserver, currentPage } from "./reader.tsx"
 import { books, queIndex } from "./app.tsx"
@@ -26,33 +26,35 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 		observer.value.observeAllPages()
 	}
 
-	function renderHeatMap() {
-		let currentPage = 0
+	useEffect(() => {
 		if (books.value[queIndex.value].readPages.length === 0) {
-			const newBooks = [...books.value]
-			newBooks[queIndex.value].readPages = new Array(
+			books.value[queIndex.value].readPages = new Array(
 				pages.value + Math.floor(pages.value / 25)
 			).fill(false)
-			books.value = newBooks
 		}
+	}, [])
+
+	function renderHeatMap() {
+		let currentSquare = 0
 		return books.value[queIndex.value].readPages.map(
 			(isRead: boolean, index: number) => {
 				if (index % 26 !== 0) {
-					currentPage += 1
+					currentSquare += 1
 				}
-				const pageValue = currentPage
+				const pageNumber = currentSquare
 				return index % 26 === 0 ? (
 					<span key={`page${index}`}>
-						{`${currentPage}-${Number(currentPage + 25)}`}
+						{`${currentSquare}-${Number(currentSquare + 25)}`}
 					</span>
 				) : (
 					<div
 						className={`${isRead ? "read-page " : ""}tooltip`}
-						onClick={() => gotoPage(pageValue)}
+						style={`${currentPage.value === currentSquare + 1 ? "border: solid red;" : ""}`}
+						onClick={() => gotoPage(pageNumber)}
 						key={`page${index}`}
 					>
-						{currentPage}
-						<span className="tooltiptext">{currentPage + 1}</span>
+						{currentSquare}
+						<span className="tooltiptext">{currentSquare + 1}</span>
 					</div>
 				)
 			}
@@ -79,7 +81,7 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 	}
 
 	return (
-		<div className="name-later">
+		<div>
 			<div className="reading-options">
 				<button
 					onClick={() => {
