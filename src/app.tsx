@@ -3,7 +3,7 @@ import "./app.css"
 import { FileList } from "./filelist.tsx"
 import { Reader } from "./reader.tsx"
 import { createContext } from "preact"
-import { signal, useSignalEffect } from "@preact/signals"
+import { signal } from "@preact/signals"
 
 export const queIndex = signal(null)
 export const books = signal([])

@@ -28,34 +28,35 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 
 	useEffect(() => {
 		if (books.value[queIndex.value].readPages.length === 0) {
-			books.value[queIndex.value].readPages = new Array(
-				pages.value + Math.floor(pages.value / 25)
-			).fill(false)
+			books.value[queIndex.value].readPages = new Array(pages.value).fill(
+				false
+			)
 		}
 	}, [])
 
 	function renderHeatMap() {
-		let currentSquare = 0
 		return books.value[queIndex.value].readPages.map(
 			(isRead: boolean, index: number) => {
-				if (index % 26 !== 0) {
-					currentSquare += 1
-				}
-				const pageNumber = currentSquare
-				return index % 26 === 0 ? (
-					<span key={`page${index}`}>
-						{`${currentSquare}-${Number(currentSquare + 25)}`}
-					</span>
-				) : (
-					<div
-						className={`${isRead ? "read-page " : ""}tooltip`}
-						style={`${currentPage.value === currentSquare + 1 ? "border: solid red;" : ""}`}
-						onClick={() => gotoPage(pageNumber)}
-						key={`page${index}`}
-					>
-						{currentSquare}
-						<span className="tooltiptext">{currentSquare + 1}</span>
-					</div>
+				// eslint-disable-next-line
+				return (
+					<>
+						{index % 25 === 0 ? (
+							<span key={`label${index}`}>
+								{`${index}-${Number(index + 25)}`}
+							</span>
+						) : (
+							<></>
+						)}
+						<div
+							className={`${isRead ? "read-page " : ""}tooltip`}
+							style={`${currentPage.value === index ? "border: solid red;" : ""}`}
+							onClick={() => gotoPage(index)}
+							key={`page${index}`}
+						>
+							{index}
+							<span className="tooltiptext">{index}</span>
+						</div>
+					</>
 				)
 			}
 		)
@@ -74,7 +75,7 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 		const currentBook = newBooks[queIndex.value]
 		currentBook.readPages[currentPage.value] =
 			!currentBook.readPages[currentPage.value]
-		if (currentBook.readPages[currentPage.value]) {
+		if (!currentBook.readPages[currentPage.value]) {
 			currentBook.lastReadPage = currentPage.value
 		}
 		books.value = newBooks

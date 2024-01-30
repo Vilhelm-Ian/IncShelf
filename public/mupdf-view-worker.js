@@ -223,6 +223,7 @@ workerMethods.drawPageAsPNG = function (pageNumber, dpi) {
 
 workerMethods.drawPageAsPixmap = function (pageNumber, dpi) {
 	const doc_to_screen = mupdf.Matrix.scale(dpi / 72, dpi / 72)
+	console.log(pageNumber)
 
 	let page = openDocument.loadPage(pageNumber - 1)
 	let bbox = Rect.transform(page.getBounds(), doc_to_screen)

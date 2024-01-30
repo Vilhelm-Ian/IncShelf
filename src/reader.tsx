@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, StateUpdater } from "preact/hooks"
+import { useState, useEffect, StateUpdater } from "preact/hooks"
 import { signal } from "@preact/signals"
 import { createRef } from "preact"
 import "./app.css"
