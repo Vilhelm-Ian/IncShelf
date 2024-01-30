@@ -126,6 +126,9 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 			const indexInQue = newQue.indexOf(queIndex.value)
 			newQue.splice(indexInQue, 1)
 			openNextInQue(newQue)
+			if (newQue.length === 0) {
+				queIndex.value = 0
+			}
 			return newQue
 		})
 		setLoading(false)
