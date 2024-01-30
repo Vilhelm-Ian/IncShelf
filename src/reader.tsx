@@ -9,6 +9,7 @@ import { MupdfDocumentViewer } from "../mupdf-view-page.js"
 import { mupdfView } from "../mupdf-view.js"
 import { books, queIndex } from "./app.tsx"
 import { readBinaryFile, exists } from "@tauri-apps/api/fs"
+import { TopBar } from "./topbar.tsx"
 
 export const observer = signal(undefined)
 export const pages = signal(0)
@@ -139,6 +140,11 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 				) : (
 					<HeatMap documentViewer={documentViewer} />
 				)}
+				<TopBar documentViewer={documentViewer} />
+				<div id="grid-sidebar">
+					<ul id="outline" />
+				</div>
+
 				<div id="reader">
 					<div id="pages" />
 					<div ref={placeholder} id="placeholder">

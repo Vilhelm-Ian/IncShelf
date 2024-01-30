@@ -3,6 +3,7 @@ import "./app.css"
 import { observer, pages, PageObserver, currentPage } from "./reader.tsx"
 import { books, queIndex } from "./app.tsx"
 import { MupdfDocumentViewer } from "../mupdf-view-page.js"
+import { Fragment } from "preact/jsx-runtime"
 
 type HeatMapProps = {
 	documentViewer: MupdfDocumentViewer
@@ -37,9 +38,8 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 	function renderHeatMap() {
 		return books.value[queIndex.value].readPages.map(
 			(isRead: boolean, index: number) => {
-				// eslint-disable-next-line
 				return (
-					<>
+					<Fragment key={`fragment${index}`}>
 						{index % 25 === 0 ? (
 							<span key={`label${index}`}>
 								{`${index}-${Number(index + 25)}`}
@@ -56,7 +56,7 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 							{index}
 							<span className="tooltiptext">{index}</span>
 						</div>
-					</>
+					</Fragment>
 				)
 			}
 		)

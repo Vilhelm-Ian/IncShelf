@@ -180,7 +180,7 @@ export function App() {
 				<Reader
 					setQue={setQue}
 					openNextInQue={openNextInQue}
-					key={queIndex}
+					key={que}
 				/>
 			)}
 		</div>
