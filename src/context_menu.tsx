@@ -4,6 +4,7 @@ import { createRef } from "preact"
 import { Position } from "./utils/get_position.ts"
 import { Anki } from "./anki.tsx"
 import { Note } from "./note.tsx"
+import { AppendNote } from "./appendnote.tsx"
 import { books, queIndex } from "./app.tsx"
 import { currentPage } from "./reader.tsx"
 
@@ -15,6 +16,7 @@ type ContextMenuProps = {
 export function ContextMenu({ position, content }: ContextMenuProps) {
 	const [isAnkiOpen, setIsAnkiOpen] = useState(false)
 	const [isEditorOpen, setIsEditorOpen] = useState(false)
+	const [isAppendNote, setIsAppendNote] = useState(false)
 	const contextMenu = createRef()
 	const [visibility, setVisibility] = useState("hidden")
 	const [top, setTop] = useState(0)
@@ -44,7 +46,9 @@ export function ContextMenu({ position, content }: ContextMenuProps) {
 			>
 				<li onClick={() => setIsEditorOpen(true)}>Add Note</li>
 				<li onClick={() => setIsAnkiOpen(true)}>Create Anki Card</li>
-				<li>Append to already existing note(not yet implemented)</li>
+				<li onClick={() => setIsAppendNote(true)}>
+					Append to already existing note
+				</li>
 				<li>X-Ray(not yet implemented)</li>
 				<li>Definition(not yet implemented)</li>
 				<li>Translate(not yet implemented)</li>
@@ -65,6 +69,15 @@ export function ContextMenu({ position, content }: ContextMenuProps) {
 					content={content}
 					isOpen={isEditorOpen}
 					setIsEditorOpen={setIsEditorOpen}
+				/>
+			) : (
+				<></>
+			)}
+			{isAppendNote ? (
+				<AppendNote
+					isOpen={isAppendNote}
+					content={content}
+					setOpen={setIsAppendNote}
 				/>
 			) : (
 				<></>
