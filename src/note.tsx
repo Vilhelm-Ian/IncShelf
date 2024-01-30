@@ -66,6 +66,12 @@ export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
 				await join(path.value, name.value),
 				easyMDE.value()
 			)
+			let notes = JSON.parse(localStorage.getItem("notes"))
+			if (notes === null) {
+				notes = []
+			}
+			notes.push({ name: name.value, path: path.value })
+			localStorage.setItem("notes", JSON.stringify(notes))
 			setIsEditorOpen(false)
 		} catch (err) {
 			error.value = `error: ${err}`
