@@ -49,6 +49,7 @@ export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
 			const newEditor = new EasyMDE({
 				element: editor.current,
 				sideBySideFullscreen: false,
+				spellChecker: false,
 			})
 			let editorContent = content
 			if (source !== undefined) {
