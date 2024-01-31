@@ -144,15 +144,31 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 					<HeatMap documentViewer={documentViewer} />
 				)}
 				<TopBar documentViewer={documentViewer} />
-				<div id="grid-sidebar">
-					<ul id="outline" />
-				</div>
 
 				<div id="reader">
-					<div id="pages" />
-					<div ref={placeholder} id="placeholder">
-						<div>Loading WASM, please wait...</div>
+					<div id="grid-sidebar">
+						<ul id="outline" />
 					</div>
+					<div id="grid-main" class="sidebarHidden">
+						<div id="pages" />
+						<div ref={placeholder} id="placeholder">
+							<div>Loading WASM, please wait...</div>
+						</div>
+					</div>
+					<div
+						id="search-dialog"
+						class="dialog"
+						style="display: none"
+					/>
+					<input
+						type="file"
+						id="open-file-input"
+						style="display: none"
+						accept=".pdf,.xps,application/pdf"
+						onChange={(e) => {
+							documentViewer.openFile(e.target.files[0])
+						}}
+					/>
 				</div>
 				<div className="notes">
 					<button onClick={() => nextBook()}>Next in que</button>

@@ -415,7 +415,7 @@ class MupdfPageViewer {
 		// TODO - cancel previous load
 
 		let searchHitsNode = document.createElement("div")
-		searchHitsNode.classList.add("searchHitList")
+		searchHitsNode.classList.add("search-hit-list")
 		this.searchHitsNode?.remove()
 		this.searchHitsNode = searchHitsNode
 		this.rootNode.appendChild(searchHitsNode)
@@ -454,7 +454,7 @@ class MupdfPageViewer {
 		this.searchHitsNode.replaceChildren()
 		for (let bbox of searchResultObject) {
 			let div = document.createElement("div")
-			div.classList.add("searchHit")
+			div.classList.add("search-hit")
 			div.style.left = bbox.x * scale + "px"
 			div.style.top = bbox.y * scale + "px"
 			div.style.width = bbox.w * scale + "px"
@@ -751,12 +751,12 @@ class MupdfDocumentHandler {
 
 	showOutline() {
 		this.gridSidebarDiv.style.display = "block"
-		this.gridMainDiv.classList.replace("sidebarHidden", "sidebarVisible")
+		this.gridMainDiv.classList.replace("sidebar-hidden", "sidebar-visible")
 	}
 
 	hideOutline() {
 		this.gridSidebarDiv.style.display = "none"
-		this.gridMainDiv.classList.replace("sidebarVisible", "sidebarHidden")
+		this.gridMainDiv.classList.replace("sidebar-visible", "sidebar-hidden")
 	}
 
 	toggleOutline() {
@@ -908,6 +908,7 @@ export class MupdfDocumentViewer {
 
 		// Change tab title
 		document.title = this.documentHandler.title || docName
+
 	}
 
 	showDocumentError(functionName, error) {

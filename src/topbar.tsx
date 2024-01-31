@@ -22,7 +22,7 @@ export function TopBar({ documentViewer }) {
 				</div>
 			</div>
 			<div class="menu">
-				<div class="menu-button" />
+				<div class="menu-button">Options</div>
 				<div class="menu-popup">
 					<div onClick={() => documentViewer.toggleFullscreen()}>
 						Fullscreen

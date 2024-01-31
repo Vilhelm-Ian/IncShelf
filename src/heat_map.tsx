@@ -1,4 +1,4 @@
-import { useEffect } from "preact/hooks"
+import { useEffect, useState } from "preact/hooks"
 import "./app.css"
 import { observer, pages, PageObserver, currentPage } from "./reader.tsx"
 import { books, queIndex } from "./app.tsx"
@@ -10,6 +10,8 @@ type HeatMapProps = {
 }
 
 export function HeatMap({ documentViewer }: HeatMapProps) {
+	const [isObserving, setIsObserving] = useState(true)
+
 	useEffect(() => {
 		const currentPageObserver = new PageObserver(getCurrentPage, {
 			threshold: 0.5,
@@ -64,8 +66,10 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 
 	function toggleObserving() {
 		if (observer.value.observingAll) {
+			setIsObserving(false)
 			observer.value.stopObserving()
 		} else {
+			setIsObserving(true)
 			observer.value.observeAllPages()
 		}
 	}
@@ -91,7 +95,13 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 				>
 					Back
 				</button>
-				<button onClick={toggleObserving}>Toggle auto mark</button>
+				<button
+					style="display:flex;justify-content:center;"
+					onClick={toggleObserving}
+				>
+					<input type="checkbox" checked={isObserving} />
+					Toggle auto mark
+				</button>
 				<button onClick={togglePageAsRead}>Toggle page as read</button>
 				<p>Current Page</p>
 				<input value={currentPage.value} type="number" />

@@ -182,20 +182,22 @@ export function AddDocumentDialog() {
 	return (
 		<dialog ref={dialog}>
 			<p>{error.value}</p>
-			<button
-				onClick={() => {
-					isOpen.value = false
-				}}
-			>
-				Close
-			</button>
-			<button onClick={addFilePath}>File</button>
-			<button
-				style={`display: ${file.value.file_path.value === "" ? "none" : "visible"}`}
-				onClick={addToDb}
-			>
-				Add
-			</button>
+			<div className="add-file-dialog-buttons">
+				<button
+					onClick={() => {
+						isOpen.value = false
+					}}
+				>
+					Close
+				</button>
+				<button onClick={addFilePath}>File</button>
+				<button
+					style={`display: ${file.value.file_path.value === "" ? "none" : "visible"}`}
+					onClick={addToDb}
+				>
+					Add
+				</button>
+			</div>
 			<p>file path: {file.value.file_path.value}</p>
 			<input onInput={updatePath} value={file.value.file_path.value} />
 			<label>Tags</label>
@@ -212,27 +214,29 @@ export function AddDocumentDialog() {
 								value={file.value.priority.value}
 								max={books.value.length}
 							/>
-							<button
-								style={
-									file.value.priority.value >=
-									books.value.length
-										? "display: none"
-										: ""
-								}
-								onClick={() => incrementPriority(1)}
-							>
-								Down
-							</button>
-							<button
-								style={
-									file.value.priority.value === 0
-										? "display: none"
-										: ""
-								}
-								onClick={() => incrementPriority(-1)}
-							>
-								Up
-							</button>
+							<div className="priority-controls-buttons">
+								<button
+									style={
+										file.value.priority.value >=
+										books.value.length
+											? "display: none"
+											: ""
+									}
+									onClick={() => incrementPriority(1)}
+								>
+									Down
+								</button>
+								<button
+									style={
+										file.value.priority.value === 0
+											? "display: none"
+											: ""
+									}
+									onClick={() => incrementPriority(-1)}
+								>
+									Up
+								</button>
+							</div>
 						</div>
 					) : (
 						<></>
