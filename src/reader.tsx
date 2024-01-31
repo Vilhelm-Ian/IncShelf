@@ -112,9 +112,11 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 		pagesScrolled.forEach((page) => {
 			newBooks[queIndex.value].readPages[page] = true
 		})
-		newBooks[queIndex.value].lastReadPage = Math.max(...newlyReadPages)
 		newBooks[queIndex.value].numberOfReadPages += newlyReadPages.length
 		books.value = newBooks
+		if (newlyReadPages.length > 0) {
+			newBooks[queIndex.value].lastReadPage = Math.max(...newlyReadPages)
+		}
 	}
 
 	async function nextBook() {
