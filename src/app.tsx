@@ -1,9 +1,9 @@
 import { useState, useEffect, StateUpdater } from "preact/hooks"
 import "./app.css"
 import { FileList } from "./filelist.tsx"
-import { Reader } from "./reader.tsx"
 import { createContext } from "preact"
 import { signal } from "@preact/signals"
+import { Viewer } from "./viewer.tsx"
 
 export const queIndex = signal(null)
 export const books = signal([])
@@ -177,10 +177,10 @@ export function App() {
 			{queIndex.value === null ? (
 				<FileList openNextInQue={openNextInQue} />
 			) : (
-				<Reader
+				<Viewer
+					key={que}
 					setQue={setQue}
 					openNextInQue={openNextInQue}
-					key={que}
 				/>
 			)}
 		</div>
