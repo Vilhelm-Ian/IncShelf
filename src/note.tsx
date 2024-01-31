@@ -4,6 +4,7 @@ import { homeDir, join } from "@tauri-apps/api/path"
 import { writeTextFile } from "@tauri-apps/api/fs"
 import { open } from "@tauri-apps/api/dialog"
 import { signal } from "@preact/signals"
+import { PrioritySelector } from "./priority_selector.tsx"
 import EasyMDE from "easymde"
 import "./app.css"
 import "../node_modules/easymde/dist/easymde.min.css"
@@ -14,6 +15,12 @@ type NoteProps = {
 	isOpen: boolean
 	setIsEditorOpen: StateUpdater<boolean>
 }
+
+const file = signal({
+	file_path: signal(""),
+	file_name: signal(`${Date.now()}.md`),
+	priority: signal(NaN),
+})
 
 const name = signal(`${Date.now()}.md`)
 const path = signal<undefined | string>(undefined)
@@ -28,6 +35,7 @@ export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
 		;(async () => {
 			const dir = await homeDir()
 			path.value = dir
+			file.value.file_path.value = dir
 		})()
 	}, [])
 
@@ -83,6 +91,7 @@ export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
 			return
 		}
 		name.value = e.currentTarget.value
+		file.value.file_name.value = e.currentTarget.value
 	}
 
 	function updatePath(e: InputEvent) {
@@ -117,7 +126,10 @@ export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
 			<button onClick={openDir}>Chose Folder</button>
 			<button onClick={() => setIsEditorOpen(false)}>Close</button>
 			<button onClick={saveFile}>Save</button>
-			<textarea ref={editor} />
+			<div style="display:flex;">
+				<textarea ref={editor} />
+				<PrioritySelector file={file} />
+			</div>
 		</dialog>
 	)
 }

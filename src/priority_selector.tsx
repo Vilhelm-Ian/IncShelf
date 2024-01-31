@@ -1,17 +1,10 @@
 import { useState } from "preact/hooks"
 import "./app.css"
-import { signal, useSignalEffect } from "@preact/signals"
+import { useSignalEffect } from "@preact/signals"
 import { books, newBook, Book } from "./app.tsx"
 import { exists } from "@tauri-apps/api/fs"
 
-const file = signal({
-	file_path: signal(""),
-	file_name: signal(""),
-	priority: signal(NaN),
-})
-const error = signal("")
-
-export function PrioritySelector({ file }) {
+export function PrioritySelector({ file, error }) {
 	const [que, setQue] = useState([])
 
 	useSignalEffect(() => {

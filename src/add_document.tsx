@@ -4,9 +4,8 @@ import "./app.css"
 import { open } from "@tauri-apps/api/dialog"
 import getFileName from "./utils/get_file_name.ts"
 import { newBook, books, Book } from "./app.tsx"
-import { signal, useSignalEffect } from "@preact/signals"
+import { signal, useSignalEffect, useSignal } from "@preact/signals"
 import { isDocumentDialogOpen as isOpen } from "./filelist.tsx"
-import { exists } from "@tauri-apps/api/fs"
 import { PrioritySelector } from "./priority_selector.tsx"
 
 const file = signal({
@@ -14,16 +13,11 @@ const file = signal({
 	file_name: signal(""),
 	priority: signal(NaN),
 })
-const error = signal("")
 
 export function AddDocumentDialog() {
 	const [tags, setTags] = useState([])
 	const dialog = createRef<HTMLDialogElement>()
-	const [que, setQue] = useState([])
-
-	useSignalEffect(() => {
-		renderPriorityList().then((queRendered) => setQue(queRendered))
-	})
+	const error = useSignal("")
 
 	useSignalEffect(() => {
 		if (dialog.current === null) {
@@ -67,29 +61,6 @@ export function AddDocumentDialog() {
 		setTags(e.currentTarget.value.split(" "))
 	}
 
-	function incrementPriority(increment: number) {
-		file.value.priority.value += increment
-	}
-
-	function updatePriority(e: InputEvent) {
-		if (!(e.currentTarget instanceof HTMLInputElement)) {
-			return
-		}
-		const value = e.currentTarget.value
-		const convertedValue = Number(value)
-		if (
-			Number.isNaN(Number(value)) ||
-			convertedValue < 0 ||
-			convertedValue > books.value.length ||
-			value === ""
-		) {
-			if (value === "") return
-			e.currentTarget.value = String(file.value.priority)
-			return
-		}
-		file.value.priority.value = Number(value)
-	}
-
 	function addToDb() {
 		let newBooks = [...books.value]
 		const book = newBook(
@@ -105,66 +76,6 @@ export function AddDocumentDialog() {
 		})
 		books.value = newBooks
 		isOpen.value = false
-	}
-
-	async function renderPriorityList(): Promise<any> {
-		const sortedQue = [...books.value].sort(
-			(a, b) => a.priority - b.priority
-		)
-		if (!Number.isNaN(file.value.priority.value)) {
-			const name = file.value.file_name.value
-			const filePath = file.value.file_name.value
-			try {
-				if (await canAdd()) {
-					sortedQue.splice(
-						file.value.priority.value,
-						0,
-						newBook(name, filePath, 0)
-					)
-				}
-				error.value = ""
-			} catch (err) {
-				restartFileSignal()
-				if (err.message === undefined) {
-					error.value = err
-				} else {
-					error.value = err.message
-				}
-			}
-		}
-		return sortedQue.map((element, index) => (
-			<li
-				key={element.name}
-				style={
-					index === file.value.priority.value
-						? "border: solid 1px red;"
-						: "border: solid 1px black"
-				}
-			>
-				{element.name}
-			</li>
-		))
-	}
-
-	function restartFileSignal() {
-		file.value.file_name.value = ""
-		file.value.file_path.value = ""
-		file.value.priority.value = NaN
-	}
-
-	async function canAdd(): Promise<boolean> {
-		if (
-			books.value.some(
-				(book: Book) => book.name === file.value.file_name.value
-			)
-		) {
-			throw new Error("file already exists")
-		}
-		const doesExist = await exists(file.value.file_path.value)
-		if (!doesExist) {
-			throw new Error("file dosen't exist")
-		}
-		return true
 	}
 
 	async function updatePath(e: InputEvent) {
@@ -204,7 +115,7 @@ export function AddDocumentDialog() {
 			<label>Tags</label>
 			<input onInput={(e) => addTags(e)} />
 			<br />
-			<PrioritySelector file={file} />
+			<PrioritySelector file={file} error={error} />
 		</dialog>
 	)
 }
