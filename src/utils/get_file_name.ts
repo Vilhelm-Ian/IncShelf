@@ -10,7 +10,7 @@ async function getFileName(path: string) {
 	}
 	const fileName = path.match(regex)
 	if (fileName === null) {
-		return Promise.reject(Error("Couldn't find pdf file in path"))
+		return Promise.reject(new Error("Couldn't find pdf file in path"))
 	}
 	return fileName[0]
 }

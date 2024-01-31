@@ -2,7 +2,6 @@ import { useState } from "preact/hooks"
 import "./app.css"
 import { useSignalEffect } from "@preact/signals"
 import { books, newBook, Book } from "./app.tsx"
-import { exists } from "@tauri-apps/api/fs"
 
 export function PrioritySelector({ file, error }) {
 	const [que, setQue] = useState([])
@@ -85,11 +84,7 @@ export function PrioritySelector({ file, error }) {
 				(book: Book) => book.name === file.value.file_name.value
 			)
 		) {
-			throw new Error("file already exists")
-		}
-		const doesExist = await exists(file.value.file_path.value)
-		if (!doesExist) {
-			throw new Error("file dosen't exist")
+			throw new Error("file already in list")
 		}
 		return true
 	}

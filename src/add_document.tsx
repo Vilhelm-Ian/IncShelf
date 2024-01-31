@@ -7,6 +7,7 @@ import { newBook, books, Book } from "./app.tsx"
 import { signal, useSignalEffect, useSignal } from "@preact/signals"
 import { isDocumentDialogOpen as isOpen } from "./filelist.tsx"
 import { PrioritySelector } from "./priority_selector.tsx"
+import { exists } from "@tauri-apps/api/fs"
 
 const file = signal({
 	file_path: signal(""),
@@ -61,21 +62,29 @@ export function AddDocumentDialog() {
 		setTags(e.currentTarget.value.split(" "))
 	}
 
-	function addToDb() {
-		let newBooks = [...books.value]
-		const book = newBook(
-			file.value.file_name.value,
-			file.value.file_path.value,
-			file.value.priority.value
-		)
-		book.tags = tags
-		newBooks.splice(file.value.priority.value, 0, book)
-		newBooks = newBooks.map((book, index) => {
-			book.priority = index
-			return book
-		})
-		books.value = newBooks
-		isOpen.value = false
+	async function addToDb() {
+		try {
+			const doesExist = await exists(file.value.file_path.value)
+			if (!doesExist) {
+				throw new Error("file dosen't exist")
+			}
+			let newBooks = [...books.value]
+			const book = newBook(
+				file.value.file_name.value,
+				file.value.file_path.value,
+				file.value.priority.value
+			)
+			book.tags = tags
+			newBooks.splice(file.value.priority.value, 0, book)
+			newBooks = newBooks.map((book, index) => {
+				book.priority = index
+				return book
+			})
+			books.value = newBooks
+			isOpen.value = false
+		} catch (err) {
+			error.value = err.message
+		}
 	}
 
 	async function updatePath(e: InputEvent) {

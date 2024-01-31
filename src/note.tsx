@@ -3,11 +3,12 @@ import { createRef } from "preact"
 import { homeDir, join } from "@tauri-apps/api/path"
 import { writeTextFile } from "@tauri-apps/api/fs"
 import { open } from "@tauri-apps/api/dialog"
-import { signal } from "@preact/signals"
+import { signal, useSignal } from "@preact/signals"
 import { PrioritySelector } from "./priority_selector.tsx"
 import EasyMDE from "easymde"
 import "./app.css"
 import "../node_modules/easymde/dist/easymde.min.css"
+import { books } from "./app.tsx"
 
 type NoteProps = {
 	content: string
@@ -24,18 +25,19 @@ const file = signal({
 
 const name = signal(`${Date.now()}.md`)
 const path = signal<undefined | string>(undefined)
-const error = signal("")
 
 export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
 	const editor = createRef()
 	const dialog = createRef()
 	const [easyMDE, setEasyMDE] = useState(undefined)
+	const error = useSignal("")
 
 	useEffect(() => {
 		;(async () => {
 			const dir = await homeDir()
 			path.value = dir
 			file.value.file_path.value = dir
+			file.value.priority.value = books.value.length
 		})()
 	}, [])
 
@@ -118,7 +120,7 @@ export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
 
 	return (
 		<dialog class="editor" ref={dialog}>
-			<p>{error.value}</p>
+			<p>Error: {error.value}</p>
 			<p>File Name</p>
 			<input onInput={updateName} value={name.value} />
 			<p>Path</p>
@@ -128,7 +130,7 @@ export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
 			<button onClick={saveFile}>Save</button>
 			<div style="display:flex;">
 				<textarea ref={editor} />
-				<PrioritySelector file={file} />
+				<PrioritySelector error={error} file={file} />
 			</div>
 		</dialog>
 	)
