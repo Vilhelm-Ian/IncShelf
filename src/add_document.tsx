@@ -7,6 +7,7 @@ import { newBook, books, Book } from "./app.tsx"
 import { signal, useSignalEffect } from "@preact/signals"
 import { isDocumentDialogOpen as isOpen } from "./filelist.tsx"
 import { exists } from "@tauri-apps/api/fs"
+import { PrioritySelector } from "./priority_selector.tsx"
 
 const file = signal({
 	file_path: signal(""),
@@ -203,46 +204,7 @@ export function AddDocumentDialog() {
 			<label>Tags</label>
 			<input onInput={(e) => addTags(e)} />
 			<br />
-			<div style="display: flex; flex-direction: cloumn;">
-				<ol className="priority_list">{que}</ol>
-				<div>
-					{!Number.isNaN(file.value.priority.value) ? (
-						<div class="priority-controls">
-							<label>Priority</label>
-							<input
-								onInput={updatePriority}
-								value={file.value.priority.value}
-								max={books.value.length}
-							/>
-							<div className="priority-controls-buttons">
-								<button
-									style={
-										file.value.priority.value >=
-										books.value.length
-											? "display: none"
-											: ""
-									}
-									onClick={() => incrementPriority(1)}
-								>
-									Down
-								</button>
-								<button
-									style={
-										file.value.priority.value === 0
-											? "display: none"
-											: ""
-									}
-									onClick={() => incrementPriority(-1)}
-								>
-									Up
-								</button>
-							</div>
-						</div>
-					) : (
-						<></>
-					)}
-				</div>
-			</div>
+			<PrioritySelector file={file} />
 		</dialog>
 	)
 }
