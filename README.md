@@ -53,8 +53,8 @@
 - [x] Reading que(automatically chose which book to be read based on the priority and time passed since last read)
 - [x] HeatMap
 - [x] Sync Reading progress
-- [ ] Note que (same as above, just for notes)
-- [ ] Save notes as Markdown files so they can be edited in a Obsidian and allow easy synchronization
+- [x] Note que (same as above, just for notes)
+- [x] Save notes as Markdown files so they can be edited in a Obsidian and allow easy synchronization
 - [ ] Dark mode
 - [ ] Local translation(argos translate)
 - [ ] Local TTS(not sure which one I will use)
