@@ -5,7 +5,7 @@ import { Position } from "./utils/get_position.ts"
 import { Anki } from "./anki.tsx"
 import { Note } from "./note.tsx"
 import { AppendNote } from "./appendnote.tsx"
-import { books, queIndex } from "./app.tsx"
+import { currentItem } from "./app.tsx"
 import { currentPage } from "./reader.tsx"
 
 type ContextMenuProps = {
@@ -55,7 +55,7 @@ export function ContextMenu({ position, content }: ContextMenuProps) {
 			</ul>
 			{isAnkiOpen ? (
 				<Anki
-					source={`${books.value[queIndex.value].filePath}#page=${currentPage.value}`}
+					source={`${currentItem.value.filePath}#page=${currentPage.value}`}
 					content={content}
 					isOpen={isAnkiOpen}
 					setIsAnkiOpen={setIsAnkiOpen}
@@ -65,10 +65,11 @@ export function ContextMenu({ position, content }: ContextMenuProps) {
 			)}
 			{isEditorOpen ? (
 				<Note
-					source={`${books.value[queIndex.value].filePath}#page=${currentPage.value}`}
+					source={`${currentItem.value.filePath}#page=${currentPage.value}`}
 					content={content}
 					isOpen={isEditorOpen}
 					setIsEditorOpen={setIsEditorOpen}
+					tagsProp={currentItem.value.tags}
 				/>
 			) : (
 				<></>

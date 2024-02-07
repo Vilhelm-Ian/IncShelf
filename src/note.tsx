@@ -8,13 +8,15 @@ import { PrioritySelector } from "./priority_selector.tsx"
 import EasyMDE from "easymde"
 import "./app.css"
 import "../node_modules/easymde/dist/easymde.min.css"
-import { books } from "./app.tsx"
+import { itemsQue } from "./app.tsx"
+import { db } from "./db.ts"
 
 type NoteProps = {
 	content: string
 	source: string | undefined
 	isOpen: boolean
 	setIsEditorOpen: StateUpdater<boolean>
+	tagsProp: [string]
 }
 
 const file = signal({
@@ -23,23 +25,28 @@ const file = signal({
 	priority: signal(NaN),
 })
 
+;(async () => {
+	const dir = await homeDir()
+	path.value = dir
+	file.value.file_path.value = dir
+	file.value.priority.value = itemsQue.value.length
+})()
+
 const name = signal(`${Date.now()}.md`)
 const path = signal<undefined | string>(undefined)
 
-export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
+export function Note({
+	content,
+	isOpen,
+	setIsEditorOpen,
+	source,
+	tagsProp,
+}: NoteProps) {
 	const editor = createRef()
 	const dialog = createRef()
 	const [easyMDE, setEasyMDE] = useState(undefined)
 	const error = useSignal("")
-
-	useEffect(() => {
-		;(async () => {
-			const dir = await homeDir()
-			path.value = dir
-			file.value.file_path.value = dir
-			file.value.priority.value = books.value.length
-		})()
-	}, [])
+	const tags = useSignal(tagsProp)
 
 	useEffect(() => {
 		if (dialog.current === null || easyMDE !== undefined) {
@@ -77,12 +84,17 @@ export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
 				await join(path.value, name.value),
 				easyMDE.value()
 			)
-			let notes = JSON.parse(localStorage.getItem("notes"))
-			if (notes === null) {
-				notes = []
-			}
-			notes.push({ name: name.value, path: path.value })
-			localStorage.setItem("notes", JSON.stringify(notes))
+			await db.execute(
+				"INSERT into notes (name, filePath, priority, inQue, timesRead, tags) VALUES ($1, $2, $3, $4, $5, $6)",
+				[
+					file.value.file_name.value,
+					file.value.file_path.value,
+					file.value.priority.value,
+					true,
+					0,
+					tags.value,
+				]
+			)
 			setIsEditorOpen(false)
 		} catch (err) {
 			error.value = `error: ${err}`
@@ -119,13 +131,21 @@ export function Note({ content, isOpen, setIsEditorOpen, source }: NoteProps) {
 		}
 	}
 
+	function updateTags(e: InputEvent) {
+		if (e.currentTarget instanceof HTMLInputElement) {
+			tags.value = e.currentTarget.value.split(" ")
+		}
+	}
+
 	return (
 		<dialog class="editor" ref={dialog}>
-			<p>Error: {error.value}</p>
+			<p>{error.value}</p>
 			<p>File Name</p>
 			<input onInput={updateName} value={name.value} />
 			<p>Path</p>
 			<input onInput={updatePath} value={path.value} />
+			<p>Tags</p>
+			<input onInput={updateTags} value={tags.value.toString()} />
 			<button onClick={openDir}>Chose Folder</button>
 			<button onClick={() => setIsEditorOpen(false)}>Close</button>
 			<button onClick={saveFile}>Save</button>

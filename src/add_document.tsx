@@ -1,13 +1,14 @@
-import { useState } from "preact/hooks"
+import { useEffect, useState } from "preact/hooks"
 import { createRef } from "preact"
 import "./app.css"
 import { open } from "@tauri-apps/api/dialog"
 import getFileName from "./utils/get_file_name.ts"
-import { newBook, books, Book } from "./app.tsx"
+import { generateQue, Book, Note } from "./app.tsx"
 import { signal, useSignalEffect, useSignal } from "@preact/signals"
 import { isDocumentDialogOpen as isOpen } from "./filelist.tsx"
 import { PrioritySelector } from "./priority_selector.tsx"
 import { exists } from "@tauri-apps/api/fs"
+import { addBook, db, updatePriorities } from "./db.ts"
 
 const file = signal({
 	file_path: signal(""),
@@ -15,10 +16,24 @@ const file = signal({
 	priority: signal(NaN),
 })
 
+let itemsByPriority: (Book | Note)[] = []
+
 export function AddDocumentDialog() {
 	const [tags, setTags] = useState([])
 	const dialog = createRef<HTMLDialogElement>()
 	const error = useSignal("")
+
+	useEffect(() => {
+		;(async () => {
+			const newBooks: (Book | Note)[] = await db.select(
+				"SELECT * from books"
+			)
+			const notes: Note[] = await db.select("SELECT * from notes")
+			const items = newBooks.concat(notes)
+			items.sort((a, b) => a.priority - b.priority)
+			itemsByPriority = items
+		})()
+	}, [])
 
 	useSignalEffect(() => {
 		if (dialog.current === null) {
@@ -68,19 +83,15 @@ export function AddDocumentDialog() {
 			if (!doesExist) {
 				throw new Error("file dosen't exist")
 			}
-			let newBooks = [...books.value]
 			const book = newBook(
 				file.value.file_name.value,
 				file.value.file_path.value,
 				file.value.priority.value
 			)
 			book.tags = tags
-			newBooks.splice(file.value.priority.value, 0, book)
-			newBooks = newBooks.map((book, index) => {
-				book.priority = index
-				return book
-			})
-			books.value = newBooks
+			addBook(book)
+			updatePriorities(itemsByPriority)
+			generateQue()
 			isOpen.value = false
 		} catch (err) {
 			error.value = err.message
@@ -127,4 +138,24 @@ export function AddDocumentDialog() {
 			<PrioritySelector file={file} error={error} />
 		</dialog>
 	)
+}
+
+export function newBook(
+	name: string,
+	filePath: string,
+	priority: number
+): Book {
+	return {
+		name,
+		filePath,
+		priority,
+		readPages: [],
+		inQue: true,
+		lastReadPage: 0,
+		tags: [],
+		dueDate: new Date(),
+		interval: 0,
+		numberOfReadPages: 0,
+		timesRead: 0,
+	}
 }

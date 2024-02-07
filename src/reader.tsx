@@ -1,4 +1,4 @@
-import { useState, useEffect, StateUpdater } from "preact/hooks"
+import { useState, useEffect } from "preact/hooks"
 import { signal } from "@preact/signals"
 import { createRef } from "preact"
 import "./app.css"
@@ -7,9 +7,15 @@ import { ContextMenu } from "./context_menu.tsx"
 import { getPosition } from "./utils/get_position.ts"
 import { MupdfDocumentViewer } from "../mupdf-view-page.js"
 import { mupdfView } from "../mupdf-view.js"
-import { books, queIndex } from "./app.tsx"
+import { currentItem } from "./app.tsx"
 import { readBinaryFile, exists } from "@tauri-apps/api/fs"
 import { TopBar } from "./topbar.tsx"
+import {
+	db,
+	generateReadPages,
+	getLastReadPage,
+	incrementTimesRead,
+} from "./db.ts"
 
 export const observer = signal(undefined)
 export const pages = signal(0)
@@ -17,11 +23,10 @@ const error = signal("")
 export const currentPage = signal(0)
 
 type ReaderProps = {
-	openNextInQue: (que: number[]) => void
-	setQue: StateUpdater<number[]>
+	openNextInQue: (index?: number) => void
 }
 
-export function Reader({ openNextInQue, setQue }: ReaderProps) {
+export function Reader({ openNextInQue }: ReaderProps) {
 	const [mousePosition, setMousePosition] = useState(undefined)
 	const [isLoading, setLoading] = useState(true)
 	const [documentViewer, setDocumentViewer] = useState(undefined)
@@ -30,26 +35,33 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 
 	useEffect(() => {
 		observer.value = new PageObserver(markPageAsRead)
+		let handleKeyDown
 		;(async () => {
 			try {
-				if (!(await exists(books.value[queIndex.value].filePath))) {
+				if (!(await exists(currentItem.value.filePath))) {
 					throw new Error("file dosen't exist")
 				}
 				const newDocumentViewer = new MupdfDocumentViewer(mupdfView)
 				setDocumentViewer(newDocumentViewer)
-				const data = await readBinaryFile(
-					books.value[queIndex.value].filePath
-				)
+				const data = await readBinaryFile(currentItem.value.filePath)
 				const f = new File([data], "todo", {
 					type: "application/pdf",
 				})
 				await newDocumentViewer.openFile(f)
 				// eslint-disable-next-line
-				pages.value = newDocumentViewer.documentHandler.pageCount
-				newDocumentViewer.documentHandler.goToPage(
-					books.value[queIndex.value].lastReadPage
+				const pageCount = newDocumentViewer.documentHandler.pageCount
+				pages.value = pageCount
+				await generateReadPages(currentItem.value, pageCount)
+				const lastReadPage = await getLastReadPage(
+					currentItem.value.name
 				)
+				await incrementTimesRead(currentItem.value.name)
+				newDocumentViewer.documentHandler.goToPage(lastReadPage)
 				observer.value.observeAllPages()
+				handleKeyDown = (e: KeyboardEvent) => {
+					readerShortcuts(e, newDocumentViewer)
+				}
+				window.addEventListener("keydown", handleKeyDown)
 				setDocumentViewer(newDocumentViewer)
 				setLoading(false)
 			} catch (err) {
@@ -62,10 +74,12 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 		})()
 		return () => {
 			observer.value.stopObserving()
+			window.removeEventListener("keydown", handleKeyDown)
 		}
 	}, [])
 
 	useEffect(() => {
+		// TODO potential performance issue use ref instead
 		const pages = document.getElementById("pages")
 		pages.addEventListener("mousedown", deselect)
 		pages.addEventListener("mouseup", showContextMenu)
@@ -88,7 +102,7 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 		setMousePosition(undefined)
 	}
 
-	function markPageAsRead(entries: IntersectionObserverEntry[]) {
+	async function markPageAsRead(entries: IntersectionObserverEntry[]) {
 		// Basically if a user goes to a page we disconnect the observer from observing
 		// And start observing after jumping a page
 		// An issue with this approach is that all pages we be counted as entries
@@ -105,34 +119,39 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 			.map((entry) =>
 				Number(entry.target.querySelector("a").id.match(/\d+/)[0])
 			)
-		const newBooks = [...books.value]
 		const newlyReadPages = pagesScrolled.filter(
-			(page) => !newBooks[queIndex.value].readPages[page]
+			(page) => !currentItem.value.readPages[page]
 		)
+		const result = await db.select(
+			"SELECT readPages, numberOfReadPages from books WHERE name = $1",
+			[currentItem.value.name]
+		)
+		result[0].readPages = JSON.parse(result[0].readPages)
 		pagesScrolled.forEach((page) => {
-			newBooks[queIndex.value].readPages[page] = true
+			currentItem.value.readPages[page] = true
+			result[0].readPages[page] = true
 		})
-		newBooks[queIndex.value].numberOfReadPages += newlyReadPages.length
-		books.value = newBooks
+		const jsonReadPages = JSON.stringify(result[0].readPages)
+		await db.execute(
+			"UPDATE books SET readPages = $1, numberOfReadPages = $2 WHERE name = $3",
+			[
+				jsonReadPages,
+				result[0].numberOfReadPages + newlyReadPages.length,
+				currentItem.value.name,
+			]
+		)
+		currentItem.value.numberOfReadPages += newlyReadPages.length
 		if (newlyReadPages.length > 0) {
-			newBooks[queIndex.value].lastReadPage = Math.max(...newlyReadPages)
+			currentItem.value.lastReadPage = Math.max(...newlyReadPages)
+			await db.execute(
+				"UPDATE books SET lastReadPage = $1 WHERE name = $2",
+				[Math.max(...newlyReadPages), currentItem.value.name]
+			)
 		}
 	}
 
 	async function nextBook() {
-		const newBooks = [...books.value]
-		newBooks[queIndex.value].timesRead += 1
-		books.value = newBooks
-		setQue((oldQue) => {
-			const newQue = [...oldQue]
-			const indexInQue = newQue.indexOf(queIndex.value)
-			newQue.splice(indexInQue, 1)
-			openNextInQue(newQue)
-			if (newQue.length === 0) {
-				queIndex.value = 0
-			}
-			return newQue
-		})
+		openNextInQue()
 		setLoading(false)
 	}
 
@@ -202,37 +221,36 @@ export function Reader({ openNextInQue, setQue }: ReaderProps) {
 // 			documentViewer.showDocumentError("Load", error)
 // 		})
 
-// 	window.addEventListener("keydown", function(event: KeyboardEvent) {
-// 		if (event.key === "Escape") {
-// 			documentViewer.hideSearchBox()
-// 		}
+function readerShortcuts(event: KeyboardEvent, documentViewer) {
+	if (event.key === "Escape") {
+		documentViewer.hideSearchBox()
+	}
 
-// 		if (event.ctrlKey || event.metaKey) {
-// 			switch (event.key) {
-// 				case "+" || "=":
-// 					documentViewer.zoomIn()
-// 					event.preventDefault()
-// 					break
-// 				case "-":
-// 					documentViewer.zoomOut()
-// 					event.preventDefault()
-// 					break
-// 				case "0":
-// 					documentViewer.setZoom(100)
-// 					break
-// 				case "F":
-// 					event.preventDefault()
-// 					documentViewer.showSearchBox()
-// 					break
-// 				case "G":
-// 					event.preventDefault()
-// 					documentViewer.showSearchBox()
-// 					runSearch(event.shiftKey ? -1 : 1)
-// 					break
-// 			}
-// 		}
-// 	})
-// }
+	if (event.ctrlKey || event.metaKey) {
+		switch (event.key) {
+			case "+" || "=":
+				documentViewer.zoomIn()
+				event.preventDefault()
+				break
+			case "-":
+				documentViewer.zoomOut()
+				event.preventDefault()
+				break
+			case "0":
+				documentViewer.setZoom(100)
+				break
+			case "f":
+				event.preventDefault()
+				documentViewer.showSearchBox()
+				break
+			case "g":
+				event.preventDefault()
+				documentViewer.showSearchBox()
+				documentViewer.runSearch(event.shiftKey ? -1 : 1)
+				break
+		}
+	}
+}
 
 export class PageObserver extends IntersectionObserver {
 	observeAllPages = function () {

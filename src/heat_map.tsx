@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks"
 import "./app.css"
-import { observer, pages, PageObserver, currentPage } from "./reader.tsx"
-import { books, queIndex } from "./app.tsx"
+import { observer, PageObserver, currentPage } from "./reader.tsx"
+import { currentItem, itemsQue } from "./app.tsx"
 import { MupdfDocumentViewer } from "../mupdf-view-page.js"
 import { Fragment } from "preact/jsx-runtime"
 
@@ -29,16 +29,8 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 		observer.value.observeAllPages()
 	}
 
-	useEffect(() => {
-		if (books.value[queIndex.value].readPages.length === 0) {
-			books.value[queIndex.value].readPages = new Array(pages.value).fill(
-				false
-			)
-		}
-	}, [])
-
 	function renderHeatMap() {
-		return books.value[queIndex.value].readPages.map(
+		return currentItem.value.readPages.map(
 			(isRead: boolean, index: number) => {
 				return (
 					<Fragment key={`fragment${index}`}>
@@ -75,14 +67,14 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 	}
 
 	function togglePageAsRead() {
-		const newBooks = [...books.value]
-		const currentBook = newBooks[queIndex.value]
+		const newBooks = [...itemsQue.value]
+		const currentBook = currentItem.value
 		currentBook.readPages[currentPage.value] =
 			!currentBook.readPages[currentPage.value]
 		if (!currentBook.readPages[currentPage.value]) {
 			currentBook.lastReadPage = currentPage.value
 		}
-		books.value = newBooks
+		itemsQue.value = newBooks
 	}
 
 	return (
@@ -90,7 +82,7 @@ export function HeatMap({ documentViewer }: HeatMapProps) {
 			<div className="reading-options">
 				<button
 					onClick={() => {
-						queIndex.value = null
+						currentItem.value = null
 					}}
 				>
 					Back

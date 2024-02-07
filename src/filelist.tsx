@@ -1,25 +1,34 @@
 import { AddDocumentDialog } from "./add_document.tsx"
-import { Book, queIndex, books } from "./app.tsx"
+import { Book, Note, itemsQue } from "./app.tsx"
 import { signal } from "@preact/signals"
+import { deleteItem, isBook } from "./db.ts"
 
 export const isDocumentDialogOpen = signal(false)
 
 type FileListProps = {
-	openNextInQue: () => void
+	openNextInQue: (index?: number) => void
 }
 
 export function FileList({ openNextInQue }: FileListProps) {
-	function removeBook(index: number) {
-		const newBooks = [...books.value]
-		newBooks.splice(index, 1)
-		books.value = newBooks
+	async function removeBook(index: number) {
+		await deleteItem(itemsQue.value[index])
+		const newQue = [...itemsQue.value]
+		newQue.splice(index, 1)
+		itemsQue.value = newQue
+	}
+
+	function getProgress(item: Book | Note) {
+		if (isBook(item)) {
+			return (item.numberOfReadPages / item.readPages.length) * 100
+		}
+		return 100
 	}
 
 	return (
 		<div>
 			<div style="display:flex;">
 				<button
-					style={books.value.length === 0 ? "display:none;" : ""}
+					style={itemsQue.value.length === 0 ? "display:none;" : ""}
 					onClick={() => openNextInQue()}
 				>
 					Next in que
@@ -40,12 +49,12 @@ export function FileList({ openNextInQue }: FileListProps) {
 					<th>Progress</th>
 					<th>Tags</th>
 				</tr>
-				{books.value.map((file: Book, index: number) => (
+				{itemsQue.value.map((file: Book | Note, index: number) => (
 					<tr key={`row${index}`}>
 						<th>
 							<span
 								onClick={() => {
-									queIndex.value = index
+									openNextInQue(index)
 								}}
 							>
 								{file.name}
@@ -53,14 +62,7 @@ export function FileList({ openNextInQue }: FileListProps) {
 						</th>
 						<th>1 day</th>
 						<th>
-							<progress
-								max="100"
-								value={
-									(file.numberOfReadPages /
-										file.readPages.length) *
-									100
-								}
-							/>
+							<progress max="100" value={getProgress(file)} />
 						</th>
 						<th>{file.tags.map((tag) => `${tag} `)}</th>
 						<th>

@@ -1,10 +1,25 @@
-import { useState } from "preact/hooks"
+import { useState, useEffect } from "preact/hooks"
 import "./app.css"
 import { useSignalEffect } from "@preact/signals"
-import { books, newBook, Book } from "./app.tsx"
+import { itemsQue, Book, Note } from "./app.tsx"
+import { db } from "./db.ts"
+import { newBook } from "./add_document.tsx"
 
 export function PrioritySelector({ file, error }) {
 	const [que, setQue] = useState([])
+	const [itemsByPriority, setItemsByPriority] = useState([])
+
+	useEffect(() => {
+		;(async () => {
+			const newBooks: (Book | Note)[] = await db.select(
+				"SELECT * from books"
+			)
+			const notes: Note[] = await db.select("SELECT * from notes")
+			const items = newBooks.concat(notes)
+			items.sort((a, b) => a.priority - b.priority)
+			setItemsByPriority(items)
+		})()
+	}, [])
 
 	useSignalEffect(() => {
 		renderPriorityList().then((queRendered) => setQue(queRendered))
@@ -23,7 +38,7 @@ export function PrioritySelector({ file, error }) {
 		if (
 			Number.isNaN(Number(value)) ||
 			convertedValue < 0 ||
-			convertedValue > books.value.length ||
+			convertedValue > itemsQue.value.length ||
 			value === ""
 		) {
 			if (value === "") return
@@ -33,13 +48,29 @@ export function PrioritySelector({ file, error }) {
 		file.value.priority.value = Number(value)
 	}
 
-	async function renderPriorityList(): Promise<any> {
-		const sortedQue = [...books.value].sort(
+	async function renderPriorityList(): Promise<JSX.Element[]> {
+		const sortedQue = [...itemsByPriority].sort(
 			(a, b) => a.priority - b.priority
 		)
+		await addItemToPriorityList(sortedQue)
+		return sortedQue.map((element, index) => (
+			<li
+				key={element.name}
+				style={
+					index === file.value.priority.value
+						? "border: solid 1px red;"
+						: "border: solid 1px black"
+				}
+			>
+				{element.name}
+			</li>
+		))
+	}
+
+	async function addItemToPriorityList(sortedQue: (Book | Note)[]) {
 		if (!Number.isNaN(file.value.priority.value)) {
 			const name = file.value.file_name.value
-			const filePath = file.value.file_name.value
+			const filePath = file.value.file_path.value
 			try {
 				if (await canAdd()) {
 					sortedQue.splice(
@@ -58,18 +89,6 @@ export function PrioritySelector({ file, error }) {
 				}
 			}
 		}
-		return sortedQue.map((element, index) => (
-			<li
-				key={element.name}
-				style={
-					index === file.value.priority.value
-						? "border: solid 1px red;"
-						: "border: solid 1px black"
-				}
-			>
-				{element.name}
-			</li>
-		))
 	}
 
 	function restartFileSignal() {
@@ -80,7 +99,7 @@ export function PrioritySelector({ file, error }) {
 
 	async function canAdd(): Promise<boolean> {
 		if (
-			books.value.some(
+			itemsQue.value.some(
 				(book: Book) => book.name === file.value.file_name.value
 			)
 		) {
@@ -99,13 +118,13 @@ export function PrioritySelector({ file, error }) {
 						<input
 							onInput={updatePriority}
 							value={file.value.priority.value}
-							max={books.value.length}
+							max={itemsQue.value.length}
 						/>
 						<div className="priority-controls-buttons">
 							<button
 								style={
 									file.value.priority.value >=
-									books.value.length
+									itemsQue.value.length
 										? "display: none"
 										: ""
 								}

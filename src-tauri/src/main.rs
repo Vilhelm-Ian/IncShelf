@@ -16,6 +16,7 @@ async fn open_file_binary(path: String) -> Result<Vec<u8>, String> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_sql::Builder::default().build())
         .invoke_handler(tauri::generate_handler![open_file_binary])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
