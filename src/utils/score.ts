@@ -27,7 +27,7 @@ function getScore(item: Book | Note, minMaxValues: number[]) {
 
 	let priorityScore =
 		normalize(item.priority, minPriority, maxPriority) * priorityWeight
-	let readPagesScore: number
+	let readPagesScore = NaN
 	if (isBook(item)) {
 		readPagesScore =
 			normalize(item.numberOfReadPages, minReadPages, maxReadPages) *
@@ -36,7 +36,7 @@ function getScore(item: Book | Note, minMaxValues: number[]) {
 	let timesReadScore =
 		normalize(item.timesRead, minTimesRead, maxTimesRead) * timesReadWeight
 
-	readPagesScore = readPagesScore ? 0 : readPagesScore
+	readPagesScore = Number.isNaN(readPagesScore) ? 0 : readPagesScore
 	priorityScore = Number.isNaN(priorityScore) ? 0 : priorityScore
 	timesReadScore = Number.isNaN(timesReadScore) ? 0 : timesReadScore
 	return priorityScore + readPagesScore + timesReadScore
