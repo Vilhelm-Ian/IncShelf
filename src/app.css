@@ -484,3 +484,11 @@ th {
 .add-file-dialog-buttons {
 	display: flex;
 }
+
+.note-viewer {
+	display: flex;
+	flex-direction: column;
+	width: 100vw;
+	height: 100vh;
+	gap: 10px;
+}

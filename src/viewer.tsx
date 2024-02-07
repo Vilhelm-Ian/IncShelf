@@ -1,21 +1,22 @@
 import "./app.css"
-import { itemsQue, currentItem } from "./app.tsx"
-import { useEffect, useState } from "preact/hooks"
+import { currentItem } from "./app.tsx"
 import { Reader } from "./reader.tsx"
+import { isBook, isNote } from "./db.ts"
+import { Note } from "./note.tsx"
 
 export function Viewer({ openNextInQue }) {
-	const [isBook, setIsBook] = useState(false)
-
-	useEffect(() => {
-		if (currentItem.value.name.match(/\.pdf/) !== null) {
-			setIsBook(true)
-		}
-	}, [])
-
 	return (
 		<div>
-			{isBook ? <Reader openNextInQue={openNextInQue} /> : <></>}
-			<div className="notes" />
+			{isBook(currentItem.value) ? (
+				<Reader openNextInQue={openNextInQue} />
+			) : (
+				<></>
+			)}
+			{isNote(currentItem.value) ? (
+				<Note openNextInQue={openNextInQue} />
+			) : (
+				<></>
+			)}
 		</div>
 	)
 }

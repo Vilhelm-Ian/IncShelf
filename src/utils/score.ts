@@ -5,7 +5,7 @@ const priorityWeight = 0.6
 const pagesReadWeight = 0.2
 const timesReadWeight = 0.2
 
-export function sortItems(items: [Book | Note]) {
+export function sortItems(items: (Book | Note)[]) {
 	const minMaxValue = getMinMaxValues(items)
 	items.sort((a: Book, b: Book) => {
 		const aScore = getScore(a, minMaxValue)
@@ -43,7 +43,7 @@ function getScore(item: Book | Note, minMaxValues: number[]) {
 }
 
 function getMinMaxValues(
-	items: [Book | Note]
+	items: (Book | Note)[]
 ): [number, number, number, number, number, number] {
 	let [
 		minPriority,

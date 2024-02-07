@@ -3,7 +3,7 @@ import { useEffect, useState } from "preact/hooks"
 import { createRef } from "preact"
 import { Position } from "./utils/get_position.ts"
 import { Anki } from "./anki.tsx"
-import { Note } from "./note.tsx"
+import { AddNote } from "./add_note.tsx"
 import { AppendNote } from "./appendnote.tsx"
 import { currentItem } from "./app.tsx"
 import { currentPage } from "./reader.tsx"
@@ -64,7 +64,7 @@ export function ContextMenu({ position, content }: ContextMenuProps) {
 				<></>
 			)}
 			{isEditorOpen ? (
-				<Note
+				<AddNote
 					source={`${currentItem.value.filePath}#page=${currentPage.value}`}
 					content={content}
 					isOpen={isEditorOpen}
