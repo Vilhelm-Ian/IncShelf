@@ -22,14 +22,15 @@ export function AddDocumentDialog() {
 	const [tags, setTags] = useState([])
 	const dialog = createRef<HTMLDialogElement>()
 	const error = useSignal("")
+	const filePathRef = createRef()
 
 	useEffect(() => {
 		;(async () => {
-			const newDocuments: (Book | Note)[] = await db.select(
+			const newBooks: (Book | Note)[] = await db.select(
 				"SELECT * from books"
 			)
 			const notes: Note[] = await db.select("SELECT * from notes")
-			const items = newDocuments.concat(notes)
+			const items = newBooks.concat(notes)
 			items.sort((a, b) => a.priority - b.priority)
 			itemsByPriority = items
 		})()
@@ -57,7 +58,14 @@ export function AddDocumentDialog() {
 				throw new Error("selected multiple or zero files")
 			}
 			file.value.file_path.value = selected
+			// TODO it dosen't work for some reason
+			if (filePathRef.current !== null) {
+				filePathRef.current.scrollLeft = filePathRef.current.scrollWidth
+			}
 			file.value.priority.value = 0
+			if (file.value.file_path.value.includes("youtube.com")) {
+				return
+			}
 			file.value.file_name.value = await getFileName(
 				file.value.file_path.value
 			)
@@ -131,7 +139,12 @@ export function AddDocumentDialog() {
 				</button>
 			</div>
 			<p>file path: {file.value.file_path.value}</p>
-			<input onInput={updatePath} value={file.value.file_path.value} />
+			<input
+				className="add-file-dialog-file-path-input"
+				ref={filePathRef}
+				onInput={updatePath}
+				value={file.value.file_path.value}
+			/>
 			<label>Tags</label>
 			<input onInput={(e) => addTags(e)} />
 			<br />

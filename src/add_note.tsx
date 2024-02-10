@@ -16,7 +16,7 @@ type NoteProps = {
 	source: string | undefined
 	isOpen: boolean
 	setIsEditorOpen: StateUpdater<boolean>
-	tagsProp: [string]
+	tagsProp: string[]
 }
 
 const file = signal({
@@ -87,8 +87,8 @@ export function AddNote({
 			await db.execute(
 				"INSERT into notes (name, filePath, priority, inQue, timesRead, tags) VALUES ($1, $2, $3, $4, $5, $6)",
 				[
-					file.value.file_name.value,
-					file.value.file_path.value,
+					name.value,
+					path.value,
 					file.value.priority.value,
 					true,
 					0,

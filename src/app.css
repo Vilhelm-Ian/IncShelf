@@ -485,6 +485,10 @@ th {
 	display: flex;
 }
 
+.add-file-dialog-file-path-input {
+	width: 90%;
+}
+
 .note-viewer {
 	display: flex;
 	flex-direction: column;

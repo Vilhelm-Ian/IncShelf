@@ -67,12 +67,15 @@ export function PrioritySelector({ file, error }) {
 		))
 	}
 
-	async function addItemToPriorityList(sortedQue: (Book | Note)[]) {
-		if (!Number.isNaN(file.value.priority.value)) {
-			const name = file.value.file_name.value
-			const filePath = file.value.file_path.value
+	async function addItemToPriorityList(
+		sortedQue: { name: string; priority: number }[]
+	) {
+		const name = file.value.file_name.value
+		const filePath = file.value.file_path.value
+		if (!Number.isNaN(file.value.priority.value) && name !== "") {
 			try {
-				if (await canAdd()) {
+				const result = await canAdd()
+				if (result) {
 					sortedQue.splice(
 						file.value.priority.value,
 						0,
@@ -100,7 +103,7 @@ export function PrioritySelector({ file, error }) {
 	async function canAdd(): Promise<boolean> {
 		if (
 			itemsQue.value.some(
-				(book: Book) => book.name === file.value.file_name.value
+				(item: Book | Note) => item.name === file.value.file_name.value
 			)
 		) {
 			throw new Error("file already in list")
