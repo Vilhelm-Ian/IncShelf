@@ -25,11 +25,11 @@ export function AddDocumentDialog() {
 
 	useEffect(() => {
 		;(async () => {
-			const newBooks: (Book | Note)[] = await db.select(
+			const newDocuments: (Book | Note)[] = await db.select(
 				"SELECT * from books"
 			)
 			const notes: Note[] = await db.select("SELECT * from notes")
-			const items = newBooks.concat(notes)
+			const items = newDocuments.concat(notes)
 			items.sort((a, b) => a.priority - b.priority)
 			itemsByPriority = items
 		})()
